@@ -204,7 +204,7 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
                 ),
-                items: provider.clients.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                items: provider.clients.map<DropdownMenuItem<String>>((c) => DropdownMenuItem<String>(value: c.id, child: Text(c.name))).toList(),
                 onChanged: (val) => setState(() => _clientId = val),
                 validator: (val) => val == null ? 'Obrigatório' : null,
               ),

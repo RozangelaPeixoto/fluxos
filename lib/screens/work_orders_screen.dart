@@ -4,6 +4,7 @@ import '../providers/app_provider.dart';
 import '../models/work_order.dart';
 import 'package:uuid/uuid.dart';
 import 'work_order_detail_screen.dart';
+import '../models/equipment.dart';
 
 class WorkOrdersScreen extends StatefulWidget {
   const WorkOrdersScreen({super.key});
@@ -225,7 +226,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context, listen: false);
-    var equipmentsForClient = _clientId == null ? [] : provider.equipments.where((e) => e.clientId == _clientId).toList();
+    List<Equipment> equipmentsForClient = _clientId == null ? [] : provider.equipments.where((e) => e.clientId == _clientId).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
@@ -253,7 +254,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
               DropdownButtonFormField<String>(
                 value: _clientId,
                 decoration: _fieldDeco(),
-                items: provider.clients.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                items: provider.clients.map<DropdownMenuItem<String>>((c) => DropdownMenuItem<String>(value: c.id, child: Text(c.name))).toList(),
                 onChanged: (val) {
                   setState(() {
                     _clientId = val;
@@ -268,7 +269,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
               DropdownButtonFormField<String>(
                 value: _equipmentId,
                 decoration: _fieldDeco(),
-                items: equipmentsForClient.map((e) => DropdownMenuItem(value: e.id, child: Text('${e.type} - ${e.brand}'))).toList(),
+                items: equipmentsForClient.map<DropdownMenuItem<String>>((e) => DropdownMenuItem<String>(value: e.id, child: Text('${e.type} - ${e.brand}'))).toList(),
                 onChanged: (val) => setState(() => _equipmentId = val),
                 validator: (val) => val == null ? 'Obrigatório' : null,
               ),
@@ -287,7 +288,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                         DropdownButtonFormField<String>(
                           value: _priority,
                           decoration: _fieldDeco(),
-                          items: ['Baixa', 'Média', 'Alta', 'Urgente'].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+                          items: ['Baixa', 'Média', 'Alta', 'Urgente'].map<DropdownMenuItem<String>>((p) => DropdownMenuItem<String>(value: p, child: Text(p))).toList(),
                           onChanged: (val) => setState(() => _priority = val!),
                         ),
                       ],
@@ -316,7 +317,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
               DropdownButtonFormField<String>(
                 value: _technicianId,
                 decoration: _fieldDeco(),
-                items: provider.technicians.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
+                items: provider.technicians.map<DropdownMenuItem<String>>((t) => DropdownMenuItem<String>(value: t.id, child: Text(t.name))).toList(),
                 onChanged: (val) => setState(() => _technicianId = val),
               ),
             ],

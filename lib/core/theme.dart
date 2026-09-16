@@ -14,7 +14,7 @@ class AppTheme {
         selectedItemColor: Colors.red,
         unselectedItemColor: Colors.grey,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 1,

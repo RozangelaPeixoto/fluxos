@@ -209,7 +209,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
                 ),
-                items: ['Pessoa jurídica', 'Pessoa física'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                items: ['Pessoa jurídica', 'Pessoa física'].map<DropdownMenuItem<String>>((t) => DropdownMenuItem<String>(value: t, child: Text(t))).toList(),
                 onChanged: (_) {},
               ),
               const SizedBox(height: 16),
