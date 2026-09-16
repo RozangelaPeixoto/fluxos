@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/work_order.dart';
 import 'work_orders_screen.dart';
+import 'package:intl/intl.dart';
 
 class WorkOrderDetailScreen extends StatelessWidget {
   final WorkOrder workOrder;
@@ -17,16 +18,36 @@ class WorkOrderDetailScreen extends StatelessWidget {
         final eq = provider.equipments.firstWhere((e) => e.id == os.equipmentId, orElse: () => throw Exception());
         final tech = os.technicianId != null ? provider.technicians.firstWhere((t) => t.id == os.technicianId, orElse: () => throw Exception()) : null;
 
+        String openDateStr = '';
+        try {
+           final openDate = DateTime.parse(os.openDate);
+           openDateStr = DateFormat("dd 'de' MMMM", 'pt_BR').format(openDate);
+        } catch (_) {}
+
         return Scaffold(
           backgroundColor: const Color(0xFFF3F4F6),
           appBar: AppBar(
+            backgroundColor: const Color(0xFFF3F4F6),
+            elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.black87),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('Criada em ${os.openDate.split('T')[0]}', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 22)),
+                Text('Criada em $openDateStr', style: const TextStyle(fontSize: 14, color: Colors.grey)),
               ],
             ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: CircleAvatar(
+                  backgroundColor: Colors.red.shade50,
+                  foregroundColor: Colors.red.shade700,
+                  radius: 20,
+                  child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+              )
+            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -35,7 +56,11 @@ class WorkOrderDetailScreen extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(
+                    color: Colors.white, 
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -54,7 +79,7 @@ class WorkOrderDetailScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text('Informações completas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Informações completas', style: TextStyle(fontSize: 18, color: Colors.black87)),
                 const SizedBox(height: 16),
                 _buildInfoCard('Cliente', client.name),
                 _buildInfoCard('Equipamento', '${eq.type} ${eq.brand} ${eq.model}'),
@@ -62,32 +87,61 @@ class WorkOrderDetailScreen extends StatelessWidget {
                 if (os.diagnosis != null && os.diagnosis!.isNotEmpty) _buildInfoCard('Diagnóstico', os.diagnosis!),
                 if (os.solution != null && os.solution!.isNotEmpty) _buildInfoCard('Solução', os.solution!),
                 
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(
+                    color: Colors.white, 
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Financeiro', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12)),
+                      const Text('Financeiro', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54, fontSize: 12)),
+                      const SizedBox(height: 12),
+                      Text('Peças R\$ ${NumberFormat.currency(locale: 'pt_BR', symbol: '').format(os.partsCost)}', style: const TextStyle(fontSize: 16)),
                       const SizedBox(height: 8),
-                      Text('Peças R\$ ${os.partsCost.toStringAsFixed(2)}'),
-                      Text('Mão de obra R\$ ${os.laborCost.toStringAsFixed(2)}'),
+                      Text('Mão de obra R\$ ${NumberFormat.currency(locale: 'pt_BR', symbol: '').format(os.laborCost)}', style: const TextStyle(fontSize: 16)),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: const Color(0xFF1E3A8A), borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(16)),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Total', style: TextStyle(color: Colors.white, fontSize: 18)),
-                      Text('R\$ ${os.totalCost.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                      Text('R\$ ${NumberFormat.currency(locale: 'pt_BR', symbol: '').format(os.totalCost)}', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
+                const SizedBox(height: 24),
+                const Text('Fotos e evidências', style: TextStyle(fontSize: 18, color: Colors.black87)),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Container(
+                      width: 80, height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
+                      ),
+                      child: const Icon(Icons.add, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text('Histórico da OS', style: TextStyle(fontSize: 18, color: Colors.black87)),
+                const SizedBox(height: 16),
+                _buildHistoryItem(Icons.check_circle, Colors.green, 'Aberta', '12 set • 08:42'),
+                _buildHistoryItem(Icons.check_circle, Colors.green, 'Atribuída', '12 set • 09:10'),
+                _buildHistoryItem(Icons.arrow_circle_right, Colors.blue, 'Em atendimento', '12 set • 13:25', isLast: true),
+                _buildHistoryItem(Icons.circle_outlined, Colors.grey, 'Aguardando peça', 'Opcional', isPending: true),
+                _buildHistoryItem(Icons.circle_outlined, Colors.grey, 'Concluída', 'Pendente', isPending: true, isVeryLast: true),
                 const SizedBox(height: 24),
               ],
             ),
@@ -119,47 +173,79 @@ class WorkOrderDetailScreen extends StatelessWidget {
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12)),
-          const SizedBox(height: 4),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54, fontSize: 12)),
+          const SizedBox(height: 8),
           Text(content, style: const TextStyle(fontSize: 16)),
         ],
       ),
     );
   }
 
+  Widget _buildHistoryItem(IconData icon, Color color, String title, String subtitle, {bool isLast = false, bool isPending = false, bool isVeryLast = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            if (!isVeryLast) Container(
+              width: 2,
+              height: 40,
+              color: isPending ? Colors.transparent : Colors.grey.shade300,
+            )
+          ],
+        ),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isPending ? Colors.grey : Colors.black87)),
+            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          ],
+        )
+      ],
+    );
+  }
+
   Widget _buildStatusPill(String status) {
     Color color;
+    Color bgColor;
     switch (status) {
-      case 'Aberta': color = Colors.blue; break;
-      case 'Em atendimento': color = Colors.blueAccent; break;
-      case 'Aguardando peça': color = Colors.orange; break;
-      case 'Concluída': color = Colors.green; break;
-      case 'Cancelada': color = Colors.grey; break;
-      default: color = Colors.grey;
+      case 'Aberta': color = Colors.blue; bgColor = Colors.blue.shade50; break;
+      case 'Em atendimento': color = Colors.blue.shade700; bgColor = Colors.blue.shade50; break;
+      case 'Aguardando peça': color = Colors.orange.shade700; bgColor = Colors.orange.shade50; break;
+      case 'Concluída': color = Colors.green.shade700; bgColor = Colors.green.shade50; break;
+      case 'Cancelada': color = Colors.grey; bgColor = Colors.grey.shade100; break;
+      default: color = Colors.grey; bgColor = Colors.grey.shade100;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
       child: Text(status, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
     );
   }
 
   Widget _buildPriorityPill(String priority) {
     Color color;
+    Color bgColor;
     switch (priority) {
-      case 'Urgente': color = Colors.red; break;
-      case 'Alta': color = Colors.deepOrange; break;
-      case 'Média': color = Colors.orange; break;
-      case 'Baixa': color = Colors.green; break;
-      default: color = Colors.grey;
+      case 'Urgente': color = Colors.red.shade700; bgColor = Colors.red.shade50; break;
+      case 'Alta': color = Colors.orange.shade700; bgColor = Colors.orange.shade50; break;
+      case 'Média': color = Colors.orange; bgColor = Colors.orange.shade50; break;
+      case 'Baixa': color = Colors.green; bgColor = Colors.green.shade50; break;
+      default: color = Colors.grey; bgColor = Colors.grey.shade100;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
       child: Text('$priority prioridade', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
     );
   }

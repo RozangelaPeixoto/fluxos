@@ -19,10 +19,12 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF3F4F6),
+        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Técnicos', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Técnicos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
             Consumer<AppProvider>(
               builder: (context, provider, _) => Text(
                 '${provider.technicians.length} técnicos cadastrados',
@@ -31,6 +33,17 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
             ),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.red.shade50,
+              foregroundColor: Colors.red.shade700,
+              radius: 20,
+              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+          )
+        ],
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
@@ -147,13 +160,27 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF3F4F6),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.technician == null ? 'Cadastrar técnico' : 'Editar técnico', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(widget.technician == null ? 'Cadastrar técnico' : 'Editar técnico', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 22)),
             const Text('Dados do profissional', style: TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.red.shade50,
+              foregroundColor: Colors.red.shade700,
+              radius: 20,
+              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+          )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

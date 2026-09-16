@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/client.dart';
 import 'package:uuid/uuid.dart';
+import 'client_detail_screen.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -19,10 +20,12 @@ class _ClientsScreenState extends State<ClientsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF3F4F6),
+        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Clientes', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Clientes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
             Consumer<AppProvider>(
               builder: (context, provider, _) => Text(
                 '${provider.clients.length} clientes cadastrados',
@@ -31,6 +34,17 @@ class _ClientsScreenState extends State<ClientsScreen> {
             ),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.red.shade50,
+              foregroundColor: Colors.red.shade700,
+              radius: 20,
+              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+          )
+        ],
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
@@ -78,7 +92,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       final client = filtered[index];
                       final osCount = provider.workOrders.where((o) => o.clientId == client.id).length;
                       return GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ClientFormScreen(client: client))),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ClientDetailScreen(client: client))),
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -154,13 +168,27 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF3F4F6),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.client == null ? 'Cadastrar cliente' : 'Editar cliente', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(widget.client == null ? 'Cadastrar cliente' : 'Editar cliente', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 22)),
             const Text('Dados de contato e endereço', style: TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.red.shade50,
+              foregroundColor: Colors.red.shade700,
+              radius: 20,
+              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+          )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -169,21 +197,43 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Identificação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('Identificação', style: TextStyle(fontSize: 16, color: Colors.black87)),
+              const SizedBox(height: 16),
+              const Text('Tipo', style: TextStyle(color: Colors.black54, fontSize: 12)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: 'Pessoa jurídica',
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                ),
+                items: ['Pessoa jurídica', 'Pessoa física'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                onChanged: (_) {},
+              ),
               const SizedBox(height: 16),
               _buildField('Nome / Razão social', _name, (val) => _name = val, true),
               _buildField('CPF / CNPJ', _document, (val) => _document = val, false),
               
-              const SizedBox(height: 24),
-              const Text('Contato', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              const Text('Contato', style: TextStyle(fontSize: 16, color: Colors.black87)),
               const SizedBox(height: 16),
               _buildField('Telefone', _phone, (val) => _phone = val, false),
               _buildField('E-mail', _email, (val) => _email = val, false),
               
-              const SizedBox(height: 24),
-              const Text('Endereço', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              _buildField('Endereço Completo', _address, (val) => _address = val, false),
+              const Text('Endereço', style: TextStyle(fontSize: 16, color: Colors.black87)),
+              const SizedBox(height: 16),
+              _buildField('CEP', '', (_) {}, false),
+              _buildField('Rua e número', _address, (val) => _address = val, false),
+              Row(
+                children: [
+                  Expanded(flex: 3, child: _buildField('Cidade / UF', '', (_) {}, false)),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 1, child: _buildField('', '', (_) {}, false)),
+                ],
+              ),
             ],
           ),
         ),
@@ -228,13 +278,16 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.black54)),
-          const SizedBox(height: 8),
+          if (label.isNotEmpty) ...[
+            Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+            const SizedBox(height: 8),
+          ],
           TextFormField(
             initialValue: initialValue,
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
             ),

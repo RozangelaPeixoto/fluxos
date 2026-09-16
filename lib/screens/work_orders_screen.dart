@@ -14,69 +14,72 @@ class WorkOrdersScreen extends StatefulWidget {
 
 class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
   String _searchQuery = '';
-  String? _statusFilter;
-  String? _priorityFilter;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF3F4F6),
+        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Ordens de Serviço', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Ordens de Serviço', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
             Consumer<AppProvider>(
               builder: (context, provider, _) => Text(
-                '${provider.workOrders.length} ordens cadastradas',
+                '${provider.workOrders.length} ordens ativas',
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.red.shade50,
+              foregroundColor: Colors.red.shade700,
+              radius: 20,
+              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+          )
+        ],
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
           var filtered = provider.workOrders.where((os) {
-            bool matchesSearch = _searchQuery.isEmpty || 
+            return _searchQuery.isEmpty || 
                 os.code.toLowerCase().contains(_searchQuery.toLowerCase()) || 
                 (provider.clients.any((c) => c.id == os.clientId && c.name.toLowerCase().contains(_searchQuery.toLowerCase()))) ||
                 (provider.equipments.any((e) => e.id == os.equipmentId && e.type.toLowerCase().contains(_searchQuery.toLowerCase()))) ||
                 (provider.technicians.any((t) => t.id == os.technicianId && t.name.toLowerCase().contains(_searchQuery.toLowerCase())));
-            bool matchesStatus = _statusFilter == null || os.status == _statusFilter;
-            bool matchesPriority = _priorityFilter == null || os.priority == _priorityFilter;
-            return matchesSearch && matchesStatus && matchesPriority;
           }).toList();
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Nº, cliente, equipamento ou técnico',
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
+                  ),
+                  onChanged: (val) => setState(() => _searchQuery = val),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Buscar OS, cliente...',
-                          prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                        ),
-                        onChanged: (val) => setState(() => _searchQuery = val),
-                      ),
-                    ),
+                    _buildFilterPill('Status ▾'),
                     const SizedBox(width: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.filter_list, color: Colors.black54),
-                        onPressed: _showFilterDialog,
-                      ),
-                    ),
+                    _buildFilterPill('Prioridade ▾'),
+                    const SizedBox(width: 8),
+                    _buildFilterPill('Responsável ▾'),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -90,7 +93,7 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     icon: const Icon(Icons.add),
-                    label: const Text('Cadastrar OS'),
+                    label: const Text('Nova ordem de serviço', style: TextStyle(fontSize: 16)),
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkOrderFormScreen())),
                   ),
                 ),
@@ -103,6 +106,7 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                       final os = filtered[index];
                       final client = provider.clients.firstWhere((c) => c.id == os.clientId, orElse: () => throw Exception());
                       final eq = provider.equipments.firstWhere((e) => e.id == os.equipmentId, orElse: () => throw Exception());
+                      final techName = os.technicianId != null ? provider.technicians.firstWhere((t) => t.id == os.technicianId).name : 'Não atribuído';
                       
                       return GestureDetector(
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => WorkOrderDetailScreen(workOrder: os))),
@@ -111,6 +115,7 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade200),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,10 +127,18 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                                   _buildStatusPill(os.status),
                                 ],
                               ),
-                              const SizedBox(height: 8),
-                              Text('${client.name} • ${eq.type}', style: const TextStyle(color: Colors.black87, fontSize: 14)),
+                              const SizedBox(height: 12),
+                              Text(client.name, style: const TextStyle(color: Colors.black87, fontSize: 16)),
                               const SizedBox(height: 4),
-                              Text(os.description, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                              Text(eq.type, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Técnico: $techName', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                  Text('Prazo: 15 set', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -141,62 +154,36 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
     );
   }
 
-  Widget _buildStatusPill(String status) {
-    Color color;
-    switch (status) {
-      case 'Aberta': color = Colors.blue; break;
-      case 'Em atendimento': color = Colors.blueAccent; break;
-      case 'Aguardando peça': color = Colors.orange; break;
-      case 'Concluída': color = Colors.green; break;
-      case 'Cancelada': color = Colors.grey; break;
-      default: color = Colors.grey;
-    }
+  Widget _buildFilterPill(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade300),
       ),
-      child: Text(status, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+      child: Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12)),
     );
   }
 
-  void _showFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Filtros'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String?>(
-                value: _statusFilter,
-                decoration: const InputDecoration(labelText: 'Status'),
-                items: [
-                  const DropdownMenuItem(value: null, child: Text('Todos')),
-                  ...['Aberta', 'Atribuída', 'Em atendimento', 'Aguardando peça', 'Concluída', 'Cancelada']
-                      .map((s) => DropdownMenuItem(value: s, child: Text(s))),
-                ],
-                onChanged: (val) => setState(() => _statusFilter = val),
-              ),
-              DropdownButtonFormField<String?>(
-                value: _priorityFilter,
-                decoration: const InputDecoration(labelText: 'Prioridade'),
-                items: [
-                  const DropdownMenuItem(value: null, child: Text('Todas')),
-                  ...['Baixa', 'Média', 'Alta', 'Urgente']
-                      .map((s) => DropdownMenuItem(value: s, child: Text(s))),
-                ],
-                onChanged: (val) => setState(() => _priorityFilter = val),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
-          ],
-        );
-      },
+  Widget _buildStatusPill(String status) {
+    Color color;
+    Color bgColor;
+    switch (status) {
+      case 'Aberta': color = Colors.blue; bgColor = Colors.blue.shade50; break;
+      case 'Em atendimento': color = Colors.blue.shade700; bgColor = Colors.blue.shade50; break;
+      case 'Aguardando peça': color = Colors.orange.shade700; bgColor = Colors.orange.shade50; break;
+      case 'Concluída': color = Colors.green.shade700; bgColor = Colors.green.shade50; break;
+      case 'Atrasada': color = Colors.red.shade700; bgColor = Colors.red.shade50; break;
+      default: color = Colors.grey; bgColor = Colors.grey.shade100;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 }
@@ -243,11 +230,14 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF3F4F6),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.os == null ? 'Cadastrar OS' : 'Editar OS', style: const TextStyle(fontWeight: FontWeight.bold)),
-            const Text('Dados do atendimento', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            Text(widget.os == null ? 'Nova ordem de serviço' : 'Editar OS', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 22)),
+            const Text('Preencha os dados abaixo', style: TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
       ),
@@ -258,9 +248,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Vinculação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              
               const Text('Cliente', style: TextStyle(color: Colors.black54)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
@@ -285,27 +272,46 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                 onChanged: (val) => setState(() => _equipmentId = val),
                 validator: (val) => val == null ? 'Obrigatório' : null,
               ),
-
-              const SizedBox(height: 24),
-              const Text('Problema e Prioridade', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              _buildField('Descrição do Problema', _description, (val) => _description = val, true),
+              _buildField('Problema relatado', _description, (val) => _description = val, true),
               
-              const Text('Prioridade', style: TextStyle(color: Colors.black54)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _priority,
-                decoration: _fieldDeco(),
-                items: ['Baixa', 'Média', 'Alta', 'Urgente'].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
-                onChanged: (val) => setState(() => _priority = val!),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Prioridade', style: TextStyle(color: Colors.black54)),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          value: _priority,
+                          decoration: _fieldDeco(),
+                          items: ['Baixa', 'Média', 'Alta', 'Urgente'].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+                          onChanged: (val) => setState(() => _priority = val!),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Prazo', style: TextStyle(color: Colors.black54)),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          initialValue: _deadline,
+                          decoration: _fieldDeco(),
+                          onSaved: (val) => _deadline = val ?? '',
+                        ),
+                      ],
+                    ),
+                  )
+                ],
               ),
               const SizedBox(height: 16),
-              _buildField('Prazo (YYYY-MM-DD)', _deadline, (val) => _deadline = val, false),
-
-              const SizedBox(height: 24),
-              const Text('Atendimento', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              const Text('Técnico Responsável', style: TextStyle(color: Colors.black54)),
+              const Text('Responsável', style: TextStyle(color: Colors.black54)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _technicianId,
@@ -313,19 +319,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                 items: provider.technicians.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
                 onChanged: (val) => setState(() => _technicianId = val),
               ),
-              const SizedBox(height: 16),
-              const Text('Status', style: TextStyle(color: Colors.black54)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _status,
-                decoration: _fieldDeco(),
-                items: ['Aberta', 'Atribuída', 'Em atendimento', 'Aguardando peça', 'Concluída', 'Cancelada']
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                onChanged: (val) => setState(() => _status = val!),
-              ),
-              const SizedBox(height: 16),
-              _buildField('Diagnóstico', _diagnosis, (val) => _diagnosis = val, false),
-              _buildField('Solução', _solution, (val) => _solution = val, false),
             ],
           ),
         ),
@@ -344,11 +337,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
-                  
-                  if (_status == 'Concluída' && _diagnosis.isEmpty && _solution.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Para concluir, informe diagnóstico ou solução')));
-                    return;
-                  }
 
                   final newOs = WorkOrder(
                     id: widget.os?.id ?? const Uuid().v4(),
@@ -371,7 +359,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Salvar OS', style: TextStyle(fontSize: 16)),
+              child: const Text('Salvar ordem de serviço', style: TextStyle(fontSize: 16)),
             ),
           ),
         ),
@@ -383,27 +371,26 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
     return InputDecoration(
       filled: true,
       fillColor: Colors.white,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
     );
   }
 
   Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.black54)),
-          const SizedBox(height: 8),
-          TextFormField(
-            initialValue: initialValue,
-            decoration: _fieldDeco(),
-            onSaved: (val) => onSaved(val ?? ''),
-            validator: (val) => (isRequired && (val == null || val.isEmpty)) ? 'Obrigatório' : null,
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.black54)),
+        const SizedBox(height: 8),
+        TextFormField(
+          initialValue: initialValue,
+          maxLines: label == 'Problema relatado' ? 3 : 1,
+          decoration: _fieldDeco(),
+          onSaved: (val) => onSaved(val ?? ''),
+          validator: (val) => (isRequired && (val == null || val.isEmpty)) ? 'Obrigatório' : null,
+        ),
+      ],
     );
   }
 }

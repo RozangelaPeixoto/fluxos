@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../providers/app_provider.dart';
 import 'clients_screen.dart';
 import 'equipments_screen.dart';
 import 'technicians_screen.dart';
 import 'work_orders_screen.dart';
+import '../models/work_order.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,6 +22,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting('pt_BR', null);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<AppProvider>(context, listen: false).loadData();
     });
@@ -46,12 +50,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.red.shade700,
+        unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Início'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Ordens'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Clientes'),
-          BottomNavigationBarItem(icon: Icon(Icons.print), label: 'Equipamentos'),
-          BottomNavigationBarItem(icon: Icon(Icons.engineering), label: 'Técnicos'),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), activeIcon: Icon(Icons.grid_view), label: 'Início'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), activeIcon: Icon(Icons.assignment), label: 'Ordens'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Clientes'),
+          BottomNavigationBarItem(icon: Icon(Icons.business_center_outlined), activeIcon: Icon(Icons.business_center), label: 'Equipamentos'),
+          BottomNavigationBarItem(icon: Icon(Icons.engineering_outlined), activeIcon: Icon(Icons.engineering), label: 'Técnicos'),
         ],
       ),
     );
@@ -64,8 +70,37 @@ class DashboardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
-        title: const Text('FluxOS - Painel'),
+        backgroundColor: const Color(0xFFF3F4F6),
+        elevation: 0,
+        title: Consumer<AppProvider>(
+          builder: (context, provider, _) {
+            String name = provider.loggedUser?.name ?? 'Usuário';
+            String date = DateFormat("EEEE, dd 'de' MMMM", 'pt_BR').format(DateTime.now());
+            date = date[0].toUpperCase() + date.substring(1);
+            String initials = name.length > 1 ? name.substring(0, 2).toUpperCase() : 'US';
+            
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Olá, $name', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
+                    Text(date, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                  ],
+                ),
+                CircleAvatar(
+                  backgroundColor: Colors.red.shade50,
+                  foregroundColor: Colors.red.shade700,
+                  radius: 20,
+                  child: Text(initials, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                )
+              ],
+            );
+          },
+        ),
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
@@ -83,14 +118,21 @@ class DashboardContent extends StatelessWidget {
           
           int overdue = 0;
           final now = DateTime.now();
+          List<WorkOrder> criticalOs = [];
           for (var o in provider.workOrders) {
-            if (o.status != 'Concluída' && o.status != 'Cancelada' && o.deadline != null) {
-              try {
-                final dl = DateTime.parse(o.deadline!);
-                if (dl.isBefore(now)) overdue++;
-              } catch (e) {
-                // ignore
+            if (o.status != 'Concluída' && o.status != 'Cancelada') {
+              bool isCritical = false;
+              if (o.priority == 'Urgente') isCritical = true;
+              if (o.deadline != null) {
+                try {
+                  final dl = DateTime.parse(o.deadline!);
+                  if (dl.isBefore(now)) {
+                    overdue++;
+                    isCritical = true;
+                  }
+                } catch (_) {}
               }
+              if (isCritical) criticalOs.add(o);
             }
           }
 
@@ -101,44 +143,65 @@ class DashboardContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (urgent > 0 || overdue > 0)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Atenção: $urgent OS urgentes e $overdue atrasadas.',
-                            style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.5,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 2.0,
                   children: [
                     _buildStatCard('Total de OS', totalOS.toString(), Colors.black87),
-                    _buildStatCard('Abertas', open.toString(), Colors.blue),
-                    _buildStatCard('Em atendimento', inProgress.toString(), Colors.blueAccent),
-                    _buildStatCard('Aguardando peça', waiting.toString(), Colors.orange),
-                    _buildStatCard('Concluídas', completed.toString(), Colors.green),
-                    _buildStatCard('Valor total', 'R\$ ${totalValue.toStringAsFixed(2)}', Colors.green.shade700),
+                    _buildStatCard('Abertas', open.toString(), Colors.blue.shade700),
+                    _buildStatCard('Em atendimento', inProgress.toString(), Colors.blue.shade700),
+                    _buildStatCard('Aguardando peça', waiting.toString(), Colors.orange.shade700),
+                    _buildStatCard('Concluídas', completed.toString(), Colors.green.shade700),
+                    _buildStatCard('Urgentes', urgent.toString(), Colors.red.shade700),
+                    _buildStatCard('Atrasadas', overdue.toString(), Colors.red.shade700),
+                    _buildStatCard('Valor total', 'R\$ ${NumberFormat.currency(locale: 'pt_BR', symbol: '').format(totalValue)}', Colors.green.shade700),
                   ],
                 ),
+                
+                if (urgent > 0 || overdue > 0) ...[
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.red.shade100),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
+                            const SizedBox(width: 8),
+                            Text('Requer atenção', style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold, fontSize: 16)),
+                            const Spacer(),
+                            Text('${urgent + overdue} OS', style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold, fontSize: 12)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '$urgent urgentes e $overdue atrasadas precisam de ação imediata.',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 24),
+                _buildSectionHeader('Ordens críticas', 'Ver todas'),
+                const SizedBox(height: 12),
+                ...criticalOs.take(3).map((os) => _buildOsCard(context, os, provider)),
+
+                const SizedBox(height: 24),
+                _buildSectionHeader('Ordens recentes', 'Ver histórico'),
+                const SizedBox(height: 12),
+                ...provider.workOrders.take(3).map((os) => _buildOsCard(context, os, provider)),
               ],
             ),
           );
@@ -147,20 +210,91 @@ class DashboardContent extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, Color color) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(title, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-            const SizedBox(height: 8),
-            Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
-          ],
-        ),
+  Widget _buildStatCard(String title, String value, Color valueColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: valueColor)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, String action) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: const TextStyle(fontSize: 18, color: Colors.black87)),
+        Text(action, style: TextStyle(fontSize: 14, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _buildOsCard(BuildContext context, WorkOrder os, AppProvider provider) {
+    String clientName = '';
+    String eqName = '';
+    try {
+      clientName = provider.clients.firstWhere((c) => c.id == os.clientId).name;
+      var eq = provider.equipments.firstWhere((e) => e.id == os.equipmentId);
+      eqName = eq.type;
+    } catch (_) {}
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              _buildStatusPill(os.status),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text('$clientName • $eqName', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+          const SizedBox(height: 12),
+          Text('Hoje, 17:00', style: TextStyle(color: Colors.red.shade700, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusPill(String status) {
+    Color color;
+    Color bgColor;
+    switch (status) {
+      case 'Aberta': color = Colors.blue; bgColor = Colors.blue.shade50; break;
+      case 'Em atendimento': color = Colors.blue.shade700; bgColor = Colors.blue.shade50; break;
+      case 'Aguardando peça': color = Colors.orange.shade700; bgColor = Colors.orange.shade50; break;
+      case 'Concluída': color = Colors.green.shade700; bgColor = Colors.green.shade50; break;
+      case 'Atrasada': color = Colors.red.shade700; bgColor = Colors.red.shade50; break;
+      case 'Urgente': color = Colors.red.shade700; bgColor = Colors.red.shade50; break;
+      default: color = Colors.grey; bgColor = Colors.grey.shade100;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 }

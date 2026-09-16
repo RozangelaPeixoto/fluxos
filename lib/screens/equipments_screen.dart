@@ -19,10 +19,12 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF3F4F6),
+        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Equipamentos', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Equipamentos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
             Consumer<AppProvider>(
               builder: (context, provider, _) => Text(
                 '${provider.equipments.length} equipamentos cadastrados',
@@ -31,6 +33,17 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
             ),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.red.shade50,
+              foregroundColor: Colors.red.shade700,
+              radius: 20,
+              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+          )
+        ],
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
@@ -150,13 +163,27 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFF3F4F6),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.equipment == null ? 'Cadastrar equipamento' : 'Editar equipamento', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(widget.equipment == null ? 'Cadastrar equipamento' : 'Editar equipamento', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 22)),
             const Text('Dados do equipamento', style: TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.red.shade50,
+              foregroundColor: Colors.red.shade700,
+              radius: 20,
+              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+          )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
