@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../models/client.dart';
 import '../models/technician.dart';
 import '../models/equipment.dart';
@@ -19,11 +21,17 @@ class DbService {
   }
 
   Future<Database> _initDb() async {
+    if (Platform.isWindows || Platform.isLinux) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
     String path = join(await getDatabasesPath(), 'fluxos.db');
-    return await openDatabase(
+    return await databaseFactory.openDatabase(
       path,
-      version: 1,
-      onCreate: _onCreate,
+      options: OpenDatabaseOptions(
+        version: 1,
+        onCreate: _onCreate,
+      ),
     );
   }
 
