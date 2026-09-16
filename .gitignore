@@ -58,3 +58,5 @@ build_history.py
 
 Layout FluxOS/
 build_history.py
+fluxos.db
+fluxos.db-journal

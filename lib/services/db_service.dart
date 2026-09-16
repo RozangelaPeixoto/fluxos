@@ -21,11 +21,15 @@ class DbService {
   }
 
   Future<Database> _initDb() async {
+    String path;
     if (Platform.isWindows || Platform.isLinux) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
+      path = join(Directory.current.path, 'fluxos.db');
+    } else {
+      path = join(await getDatabasesPath(), 'fluxos.db');
     }
-    String path = join(await getDatabasesPath(), 'fluxos.db');
+    
     return await databaseFactory.openDatabase(
       path,
       options: OpenDatabaseOptions(
