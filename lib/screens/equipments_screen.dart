@@ -4,69 +4,133 @@ import '../providers/app_provider.dart';
 import '../models/equipment.dart';
 import 'package:uuid/uuid.dart';
 
-class EquipmentsScreen extends StatelessWidget {
+class EquipmentsScreen extends StatefulWidget {
   const EquipmentsScreen({super.key});
+
+  @override
+  State<EquipmentsScreen> createState() => _EquipmentsScreenState();
+}
+
+class _EquipmentsScreenState extends State<EquipmentsScreen> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Equipamentos')),
+      backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Equipamentos', style: TextStyle(fontWeight: FontWeight.bold)),
+            Consumer<AppProvider>(
+              builder: (context, provider, _) => Text(
+                '${provider.equipments.length} equipamentos cadastrados',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ),
+          ],
+        ),
+      ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
-          if (provider.equipments.isEmpty) {
-            return const Center(child: Text('Nenhum equipamento cadastrado.'));
-          }
-          return ListView.builder(
-            itemCount: provider.equipments.length,
-            itemBuilder: (context, index) {
-              final eq = provider.equipments[index];
-              final client = provider.clients.firstWhere((c) => c.id == eq.clientId, orElse: () => throw Exception('Client not found'));
-              return ListTile(
-                title: Text('${eq.type} - ${eq.brand}'),
-                subtitle: Text('Cliente: ${client.name}'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => provider.deleteEquipment(eq.id),
+          var filtered = provider.equipments.where((e) {
+            return e.type.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                   e.brand.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                   e.model.toLowerCase().contains(_searchQuery.toLowerCase());
+          }).toList();
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Buscar por tipo, marca ou modelo',
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  ),
+                  onChanged: (val) => setState(() => _searchQuery = val),
                 ),
-                onTap: () => _showForm(context, eq),
-              );
-            },
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade700,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Cadastrar equipamento'),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EquipmentFormScreen())),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final eq = filtered[index];
+                      final client = provider.clients.firstWhere((c) => c.id == eq.clientId, orElse: () => throw Exception('Client not found'));
+                      return GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EquipmentFormScreen(equipment: eq))),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.red.shade50,
+                                foregroundColor: Colors.red.shade700,
+                                child: const Icon(Icons.print),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('${eq.type} ${eq.brand}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    const SizedBox(height: 4),
+                                    Text('Cliente: ${client.name}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showForm(context, null),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  void _showForm(BuildContext context, Equipment? eq) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => EquipmentForm(equipment: eq),
     );
   }
 }
 
-class EquipmentForm extends StatefulWidget {
+class EquipmentFormScreen extends StatefulWidget {
   final Equipment? equipment;
-  const EquipmentForm({super.key, this.equipment});
+  const EquipmentFormScreen({super.key, this.equipment});
 
   @override
-  State<EquipmentForm> createState() => _EquipmentFormState();
+  State<EquipmentFormScreen> createState() => _EquipmentFormScreenState();
 }
 
-class _EquipmentFormState extends State<EquipmentForm> {
+class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _clientId;
-  late String _type;
-  late String _brand;
-  late String _model;
-  late String _serial;
-  late String _patrimony;
-  late String _observations;
+  late String _type, _brand, _model, _serial, _patrimony, _observations;
 
   @override
   void initState() {
@@ -83,78 +147,109 @@ class _EquipmentFormState extends State<EquipmentForm> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context, listen: false);
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.equipment == null ? 'Cadastrar equipamento' : 'Editar equipamento', style: const TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Dados do equipamento', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          ],
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.equipment == null ? 'Novo Equipamento' : 'Editar Equipamento', style: const TextStyle(fontSize: 20)),
+              const Text('Vinculação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              const Text('Cliente', style: TextStyle(color: Colors.black54)),
+              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _clientId,
-                decoration: const InputDecoration(labelText: 'Cliente'),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                ),
                 items: provider.clients.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                 onChanged: (val) => setState(() => _clientId = val),
                 validator: (val) => val == null ? 'Obrigatório' : null,
               ),
-              TextFormField(
-                initialValue: _type,
-                decoration: const InputDecoration(labelText: 'Tipo'),
-                onSaved: (val) => _type = val ?? '',
-                validator: (val) => val == null || val.isEmpty ? 'Obrigatório' : null,
-              ),
-              TextFormField(
-                initialValue: _brand,
-                decoration: const InputDecoration(labelText: 'Marca'),
-                onSaved: (val) => _brand = val ?? '',
-              ),
-              TextFormField(
-                initialValue: _model,
-                decoration: const InputDecoration(labelText: 'Modelo'),
-                onSaved: (val) => _model = val ?? '',
-              ),
-              TextFormField(
-                initialValue: _serial,
-                decoration: const InputDecoration(labelText: 'Número de Série'),
-                onSaved: (val) => _serial = val ?? '',
-              ),
-              TextFormField(
-                initialValue: _patrimony,
-                decoration: const InputDecoration(labelText: 'Patrimônio'),
-                onSaved: (val) => _patrimony = val ?? '',
-              ),
-              TextFormField(
-                initialValue: _observations,
-                decoration: const InputDecoration(labelText: 'Observações'),
-                onSaved: (val) => _observations = val ?? '',
-              ),
+              const SizedBox(height: 24),
+              const Text('Identificação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    final newEq = Equipment(
-                      id: widget.equipment?.id ?? const Uuid().v4(),
-                      clientId: _clientId!,
-                      type: _type,
-                      brand: _brand,
-                      model: _model,
-                      serialNumber: _serial,
-                      patrimony: _patrimony,
-                      observations: _observations,
-                    );
-                    provider.saveEquipment(newEq);
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Salvar'),
-              ),
-              const SizedBox(height: 16),
+              _buildField('Tipo (Ex: Ar-condicionado)', _type, (val) => _type = val, true),
+              _buildField('Marca', _brand, (val) => _brand = val, false),
+              _buildField('Modelo', _model, (val) => _model = val, false),
+              _buildField('Número de Série', _serial, (val) => _serial = val, false),
+              _buildField('Patrimônio', _patrimony, (val) => _patrimony = val, false),
+              _buildField('Observações', _observations, (val) => _observations = val, false),
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 50,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  _formKey.currentState!.save();
+                  final newEq = Equipment(
+                    id: widget.equipment?.id ?? const Uuid().v4(),
+                    clientId: _clientId!,
+                    type: _type,
+                    brand: _brand,
+                    model: _model,
+                    serialNumber: _serial,
+                    patrimony: _patrimony,
+                    observations: _observations,
+                  );
+                  provider.saveEquipment(newEq);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Salvar equipamento', style: TextStyle(fontSize: 16)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.black54)),
+          const SizedBox(height: 8),
+          TextFormField(
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+            ),
+            onSaved: (val) => onSaved(val ?? ''),
+            validator: (val) => (isRequired && (val == null || val.isEmpty)) ? 'Obrigatório' : null,
+          ),
+        ],
       ),
     );
   }

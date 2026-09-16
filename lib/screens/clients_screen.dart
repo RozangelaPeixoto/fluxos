@@ -4,66 +4,140 @@ import '../providers/app_provider.dart';
 import '../models/client.dart';
 import 'package:uuid/uuid.dart';
 
-class ClientsScreen extends StatelessWidget {
+class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
+
+  @override
+  State<ClientsScreen> createState() => _ClientsScreenState();
+}
+
+class _ClientsScreenState extends State<ClientsScreen> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Clientes')),
+      backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Clientes', style: TextStyle(fontWeight: FontWeight.bold)),
+            Consumer<AppProvider>(
+              builder: (context, provider, _) => Text(
+                '${provider.clients.length} clientes cadastrados',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ),
+          ],
+        ),
+      ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
-          if (provider.clients.isEmpty) {
-            return const Center(child: Text('Nenhum cliente cadastrado.'));
-          }
-          return ListView.builder(
-            itemCount: provider.clients.length,
-            itemBuilder: (context, index) {
-              final client = provider.clients[index];
-              return ListTile(
-                title: Text(client.name),
-                subtitle: Text(client.document),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => provider.deleteClient(client.id),
+          var filtered = provider.clients.where((c) {
+            return c.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                   c.document.contains(_searchQuery) ||
+                   c.phone.contains(_searchQuery);
+          }).toList();
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Buscar por nome, documento ou telefone',
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  ),
+                  onChanged: (val) => setState(() => _searchQuery = val),
                 ),
-                onTap: () => _showForm(context, client),
-              );
-            },
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade700,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Cadastrar cliente'),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClientFormScreen())),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final client = filtered[index];
+                      final osCount = provider.workOrders.where((o) => o.clientId == client.id).length;
+                      return GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ClientFormScreen(client: client))),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.red.shade50,
+                                foregroundColor: Colors.red.shade700,
+                                child: Text(client.name.substring(0, 2).toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(client.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    const SizedBox(height: 4),
+                                    Text('Empresa • ${client.address}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text('$osCount OS', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showForm(context, null),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  void _showForm(BuildContext context, Client? client) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => ClientForm(client: client),
     );
   }
 }
 
-class ClientForm extends StatefulWidget {
+class ClientFormScreen extends StatefulWidget {
   final Client? client;
-  const ClientForm({super.key, this.client});
+  const ClientFormScreen({super.key, this.client});
 
   @override
-  State<ClientForm> createState() => _ClientFormState();
+  State<ClientFormScreen> createState() => _ClientFormScreenState();
 }
 
-class _ClientFormState extends State<ClientForm> {
+class _ClientFormScreenState extends State<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  late String _name;
-  late String _document;
-  late String _phone;
-  late String _email;
-  late String _address;
+  late String _name, _document, _phone, _email, _address;
 
   @override
   void initState() {
@@ -77,42 +151,54 @@ class _ClientFormState extends State<ClientForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.client == null ? 'Novo Cliente' : 'Editar Cliente', style: const TextStyle(fontSize: 20)),
-            TextFormField(
-              initialValue: _name,
-              decoration: const InputDecoration(labelText: 'Nome'),
-              onSaved: (val) => _name = val ?? '',
-              validator: (val) => val == null || val.isEmpty ? 'Obrigatório' : null,
-            ),
-            TextFormField(
-              initialValue: _document,
-              decoration: const InputDecoration(labelText: 'CPF/CNPJ'),
-              onSaved: (val) => _document = val ?? '',
-            ),
-            TextFormField(
-              initialValue: _phone,
-              decoration: const InputDecoration(labelText: 'Telefone'),
-              onSaved: (val) => _phone = val ?? '',
-            ),
-            TextFormField(
-              initialValue: _email,
-              decoration: const InputDecoration(labelText: 'E-mail'),
-              onSaved: (val) => _email = val ?? '',
-            ),
-            TextFormField(
-              initialValue: _address,
-              decoration: const InputDecoration(labelText: 'Endereço'),
-              onSaved: (val) => _address = val ?? '',
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
+            Text(widget.client == null ? 'Cadastrar cliente' : 'Editar cliente', style: const TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Dados de contato e endereço', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          ],
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Identificação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              _buildField('Nome / Razão social', _name, (val) => _name = val, true),
+              _buildField('CPF / CNPJ', _document, (val) => _document = val, false),
+              
+              const SizedBox(height: 24),
+              const Text('Contato', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              _buildField('Telefone', _phone, (val) => _phone = val, false),
+              _buildField('E-mail', _email, (val) => _email = val, false),
+              
+              const SizedBox(height: 24),
+              const Text('Endereço', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              _buildField('Endereço Completo', _address, (val) => _address = val, false),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 50,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
@@ -128,11 +214,34 @@ class _ClientFormState extends State<ClientForm> {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Salvar'),
+              child: const Text('Salvar cliente', style: TextStyle(fontSize: 16)),
             ),
-            const SizedBox(height: 16),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.black54)),
+          const SizedBox(height: 8),
+          TextFormField(
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+            ),
+            onSaved: (val) => onSaved(val ?? ''),
+            validator: (val) => (isRequired && (val == null || val.isEmpty)) ? 'Obrigatório' : null,
+          ),
+        ],
       ),
     );
   }

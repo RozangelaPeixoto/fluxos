@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/work_order.dart';
 import 'package:uuid/uuid.dart';
+import 'work_order_detail_screen.dart';
 
 class WorkOrdersScreen extends StatefulWidget {
   const WorkOrdersScreen({super.key});
@@ -19,7 +20,21 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ordens de Serviço')),
+      backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Ordens de Serviço', style: TextStyle(fontWeight: FontWeight.bold)),
+            Consumer<AppProvider>(
+              builder: (context, provider, _) => Text(
+                '${provider.workOrders.length} ordens cadastradas',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ),
+          ],
+        ),
+      ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
           var filtered = provider.workOrders.where((os) {
@@ -33,52 +48,116 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
             return matchesSearch && matchesStatus && matchesPriority;
           }).toList();
 
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
                   children: [
                     Expanded(
                       child: TextField(
-                        decoration: const InputDecoration(hintText: 'Buscar OS, cliente, equipamento...'),
+                        decoration: InputDecoration(
+                          hintText: 'Buscar OS, cliente...',
+                          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        ),
                         onChanged: (val) => setState(() => _searchQuery = val),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.filter_list),
-                      onPressed: () => _showFilterDialog(),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.filter_list, color: Colors.black54),
+                        onPressed: _showFilterDialog,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final os = filtered[index];
-                    final client = provider.clients.firstWhere((c) => c.id == os.clientId, orElse: () => throw Exception());
-                    final eq = provider.equipments.firstWhere((e) => e.id == os.equipmentId, orElse: () => throw Exception());
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: ListTile(
-                        title: Text('${os.code} - ${client.name}'),
-                        subtitle: Text('${eq.type} | Status: ${os.status} | Prioridade: ${os.priority}'),
-                        trailing: Text('R\$ ${os.totalCost.toStringAsFixed(2)}'),
-                        onTap: () => _showForm(context, os),
-                      ),
-                    );
-                  },
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade700,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Cadastrar OS'),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkOrderFormScreen())),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final os = filtered[index];
+                      final client = provider.clients.firstWhere((c) => c.id == os.clientId, orElse: () => throw Exception());
+                      final eq = provider.equipments.firstWhere((e) => e.id == os.equipmentId, orElse: () => throw Exception());
+                      
+                      return GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => WorkOrderDetailScreen(workOrder: os))),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  _buildStatusPill(os.status),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text('${client.name} • ${eq.type}', style: const TextStyle(color: Colors.black87, fontSize: 14)),
+                              const SizedBox(height: 4),
+                              Text(os.description, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showForm(context, null),
-        child: const Icon(Icons.add),
+    );
+  }
+
+  Widget _buildStatusPill(String status) {
+    Color color;
+    switch (status) {
+      case 'Aberta': color = Colors.blue; break;
+      case 'Em atendimento': color = Colors.blueAccent; break;
+      case 'Aguardando peça': color = Colors.orange; break;
+      case 'Concluída': color = Colors.green; break;
+      case 'Cancelada': color = Colors.grey; break;
+      default: color = Colors.grey;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
       ),
+      child: Text(status, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -120,25 +199,17 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
       },
     );
   }
-
-  void _showForm(BuildContext context, WorkOrder? os) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => WorkOrderForm(os: os),
-    );
-  }
 }
 
-class WorkOrderForm extends StatefulWidget {
+class WorkOrderFormScreen extends StatefulWidget {
   final WorkOrder? os;
-  const WorkOrderForm({super.key, this.os});
+  const WorkOrderFormScreen({super.key, this.os});
 
   @override
-  State<WorkOrderForm> createState() => _WorkOrderFormState();
+  State<WorkOrderFormScreen> createState() => _WorkOrderFormScreenState();
 }
 
-class _WorkOrderFormState extends State<WorkOrderForm> {
+class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _clientId;
   String? _equipmentId;
@@ -148,6 +219,7 @@ class _WorkOrderFormState extends State<WorkOrderForm> {
   String _status = 'Aberta';
   late String _diagnosis;
   late String _solution;
+  late String _deadline;
 
   @override
   void initState() {
@@ -160,6 +232,7 @@ class _WorkOrderFormState extends State<WorkOrderForm> {
     _status = widget.os?.status ?? 'Aberta';
     _diagnosis = widget.os?.diagnosis ?? '';
     _solution = widget.os?.solution ?? '';
+    _deadline = widget.os?.deadline ?? '';
   }
 
   @override
@@ -167,18 +240,32 @@ class _WorkOrderFormState extends State<WorkOrderForm> {
     final provider = Provider.of<AppProvider>(context, listen: false);
     var equipmentsForClient = _clientId == null ? [] : provider.equipments.where((e) => e.clientId == _clientId).toList();
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.os == null ? 'Cadastrar OS' : 'Editar OS', style: const TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Dados do atendimento', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          ],
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.os == null ? 'Nova OS' : 'Editar OS', style: const TextStyle(fontSize: 20)),
+              const Text('Vinculação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              
+              const Text('Cliente', style: TextStyle(color: Colors.black54)),
+              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _clientId,
-                decoration: const InputDecoration(labelText: 'Cliente'),
+                decoration: _fieldDeco(),
                 items: provider.clients.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                 onChanged: (val) {
                   setState(() {
@@ -188,91 +275,135 @@ class _WorkOrderFormState extends State<WorkOrderForm> {
                 },
                 validator: (val) => val == null ? 'Obrigatório' : null,
               ),
+              const SizedBox(height: 16),
+              const Text('Equipamento', style: TextStyle(color: Colors.black54)),
+              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _equipmentId,
-                decoration: const InputDecoration(labelText: 'Equipamento'),
+                decoration: _fieldDeco(),
                 items: equipmentsForClient.map((e) => DropdownMenuItem(value: e.id, child: Text('${e.type} - ${e.brand}'))).toList(),
                 onChanged: (val) => setState(() => _equipmentId = val),
                 validator: (val) => val == null ? 'Obrigatório' : null,
               ),
-              DropdownButtonFormField<String>(
-                value: _technicianId,
-                decoration: const InputDecoration(labelText: 'Técnico'),
-                items: provider.technicians.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
-                onChanged: (val) => setState(() => _technicianId = val),
-              ),
-              TextFormField(
-                initialValue: _description,
-                decoration: const InputDecoration(labelText: 'Descrição do Problema'),
-                onSaved: (val) => _description = val ?? '',
-                validator: (val) => val == null || val.isEmpty ? 'Obrigatório' : null,
-              ),
+
+              const SizedBox(height: 24),
+              const Text('Problema e Prioridade', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              _buildField('Descrição do Problema', _description, (val) => _description = val, true),
+              
+              const Text('Prioridade', style: TextStyle(color: Colors.black54)),
+              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _priority,
-                decoration: const InputDecoration(labelText: 'Prioridade'),
+                decoration: _fieldDeco(),
                 items: ['Baixa', 'Média', 'Alta', 'Urgente'].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
                 onChanged: (val) => setState(() => _priority = val!),
               ),
+              const SizedBox(height: 16),
+              _buildField('Prazo (YYYY-MM-DD)', _deadline, (val) => _deadline = val, false),
+
+              const SizedBox(height: 24),
+              const Text('Atendimento', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              const Text('Técnico Responsável', style: TextStyle(color: Colors.black54)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _technicianId,
+                decoration: _fieldDeco(),
+                items: provider.technicians.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
+                onChanged: (val) => setState(() => _technicianId = val),
+              ),
+              const SizedBox(height: 16),
+              const Text('Status', style: TextStyle(color: Colors.black54)),
+              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _status,
-                decoration: const InputDecoration(labelText: 'Status'),
+                decoration: _fieldDeco(),
                 items: ['Aberta', 'Atribuída', 'Em atendimento', 'Aguardando peça', 'Concluída', 'Cancelada']
                     .map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (val) => setState(() => _status = val!),
               ),
-              TextFormField(
-                initialValue: _diagnosis,
-                decoration: const InputDecoration(labelText: 'Diagnóstico'),
-                onSaved: (val) => _diagnosis = val ?? '',
-              ),
-              TextFormField(
-                initialValue: _solution,
-                decoration: const InputDecoration(labelText: 'Solução'),
-                onSaved: (val) => _solution = val ?? '',
-              ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    
-                    if (_status == 'Concluída' && _diagnosis.isEmpty && _solution.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Para concluir, informe diagnóstico ou solução')));
-                      return;
-                    }
-
-                    final newOs = WorkOrder(
-                      id: widget.os?.id ?? const Uuid().v4(),
-                      code: widget.os?.code ?? 'OS-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-                      clientId: _clientId!,
-                      equipmentId: _equipmentId!,
-                      description: _description,
-                      priority: _priority,
-                      technicianId: _technicianId,
-                      openDate: widget.os?.openDate ?? DateTime.now().toIso8601String(),
-                      deadline: widget.os?.deadline,
-                      status: _status,
-                      diagnosis: _diagnosis,
-                      solution: _solution,
-                      laborCost: widget.os?.laborCost ?? 0.0,
-                      partsCost: widget.os?.partsCost ?? 0.0,
-                      totalCost: widget.os?.totalCost ?? 0.0,
-                    );
-                    provider.saveWorkOrder(newOs);
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Salvar'),
-              ),
-              const SizedBox(height: 16),
+              _buildField('Diagnóstico', _diagnosis, (val) => _diagnosis = val, false),
+              _buildField('Solução', _solution, (val) => _solution = val, false),
             ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 50,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  _formKey.currentState!.save();
+                  
+                  if (_status == 'Concluída' && _diagnosis.isEmpty && _solution.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Para concluir, informe diagnóstico ou solução')));
+                    return;
+                  }
+
+                  final newOs = WorkOrder(
+                    id: widget.os?.id ?? const Uuid().v4(),
+                    code: widget.os?.code ?? 'OS-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
+                    clientId: _clientId!,
+                    equipmentId: _equipmentId!,
+                    description: _description,
+                    priority: _priority,
+                    technicianId: _technicianId,
+                    openDate: widget.os?.openDate ?? DateTime.now().toIso8601String(),
+                    deadline: _deadline.isEmpty ? null : _deadline,
+                    status: _status,
+                    diagnosis: _diagnosis,
+                    solution: _solution,
+                    laborCost: widget.os?.laborCost ?? 0.0,
+                    partsCost: widget.os?.partsCost ?? 0.0,
+                    totalCost: widget.os?.totalCost ?? 0.0,
+                  );
+                  provider.saveWorkOrder(newOs);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Salvar OS', style: TextStyle(fontSize: 16)),
+            ),
           ),
         ),
       ),
     );
   }
+
+  InputDecoration _fieldDeco() {
+    return InputDecoration(
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+    );
+  }
+
+  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.black54)),
+          const SizedBox(height: 8),
+          TextFormField(
+            initialValue: initialValue,
+            decoration: _fieldDeco(),
+            onSaved: (val) => onSaved(val ?? ''),
+            validator: (val) => (isRequired && (val == null || val.isEmpty)) ? 'Obrigatório' : null,
+          ),
+        ],
+      ),
+    );
+  }
 }
-
-// implementacao de filtros finalizada
-
-// implementacao de filtros finalizada
