@@ -3,6 +3,8 @@ class Technician {
   String name;
   String contact;
   String specialty;
+  String matricula;
+  String senha;
   int isActive; 
 
   Technician({
@@ -10,6 +12,8 @@ class Technician {
     required this.name,
     required this.contact,
     required this.specialty,
+    required this.matricula,
+    required this.senha,
     this.isActive = 1,
   });
 
@@ -19,6 +23,8 @@ class Technician {
       'name': name,
       'contact': contact,
       'specialty': specialty,
+      'matricula': matricula,
+      'senha': senha,
       'isActive': isActive,
     };
   }
@@ -29,6 +35,8 @@ class Technician {
       name: map['name'],
       contact: map['contact'],
       specialty: map['specialty'],
+      matricula: map['matricula'] ?? '',
+      senha: map['senha'] ?? '',
       isActive: map['isActive'],
     );
   }
