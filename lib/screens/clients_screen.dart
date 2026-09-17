@@ -151,11 +151,11 @@ class ClientFormScreen extends StatefulWidget {
 class _ClientFormScreenState extends State<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late String _name, _document, _phone, _email, _address, _city, _uf, _cep;
-  late String _clientType;
+  String _clientType = 'Pessoa jurídica';
   
   final phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: { "#": RegExp(r'[0-9]') });
   final cepMask = MaskTextInputFormatter(mask: '#####-###', filter: { "#": RegExp(r'[0-9]') });
-  late MaskTextInputFormatter docMask;
+  MaskTextInputFormatter docMask = MaskTextInputFormatter(mask: '##.###.###/####-##', filter: { "#": RegExp(r'[0-9]') });
 
   @override
   void initState() {
