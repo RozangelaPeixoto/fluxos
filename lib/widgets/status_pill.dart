@@ -15,7 +15,7 @@ class StatusPill extends StatelessWidget {
       switch (status) {
         case 'Urgente': color = Colors.red.shade700; bgColor = Colors.red.shade50; break;
         case 'Alta': color = Colors.orange.shade700; bgColor = Colors.orange.shade50; break;
-        case 'Média': color = Colors.orange; bgColor = Colors.orange.shade50; break;
+        case 'Média': color = Colors.blue.shade700; bgColor = Colors.blue.shade50; break;
         case 'Baixa': color = Colors.green; bgColor = Colors.green.shade50; break;
         default: color = Colors.grey; bgColor = Colors.grey.shade100;
       }
