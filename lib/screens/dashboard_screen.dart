@@ -281,8 +281,6 @@ class DashboardContent extends StatelessWidget {
     if (showCriticalTag) {
       if (isOverdue) {
         criticalTag = 'Atrasada';
-      } else if (os.priority == 'Urgente') {
-        criticalTag = 'Urgente';
       }
     }
 
@@ -307,10 +305,12 @@ class DashboardContent extends StatelessWidget {
                 Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 Row(
                   children: [
-                    if (criticalTag.isNotEmpty) ...[
+                    if (criticalTag == 'Atrasada') ...[
                       StatusPill(status: criticalTag),
                       const SizedBox(width: 8),
                     ],
+                    StatusPill(status: os.priority, isPriority: true),
+                    const SizedBox(width: 8),
                     StatusPill(status: os.status),
                   ],
                 ),

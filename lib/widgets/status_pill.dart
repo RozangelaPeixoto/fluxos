@@ -20,9 +20,9 @@ class StatusPill extends StatelessWidget {
         default: color = Colors.grey; bgColor = Colors.grey.shade100;
       }
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
-        child: Text('$status prioridade', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+        child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
       );
     }
 

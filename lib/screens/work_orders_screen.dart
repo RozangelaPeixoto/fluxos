@@ -152,7 +152,13 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  StatusPill(status: os.status),
+                                  Row(
+                                    children: [
+                                      StatusPill(status: os.priority, isPriority: true),
+                                      const SizedBox(width: 8),
+                                      StatusPill(status: os.status),
+                                    ],
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 12),
