@@ -115,25 +115,29 @@ class DashboardContent extends StatelessWidget {
           int waiting = provider.workOrders.where((o) => o.status == 'Aguardando peça').length;
           int completed = provider.workOrders.where((o) => o.status == 'Concluída').length;
           
-          int urgent = provider.workOrders.where((o) => o.priority == 'Urgente' && o.status != 'Concluída' && o.status != 'Cancelada').length;
-          
+          int urgent = 0;
           int overdue = 0;
           final now = DateTime.now();
           List<WorkOrder> criticalOs = [];
           for (var o in provider.workOrders) {
             if (o.status != 'Concluída' && o.status != 'Cancelada') {
-              bool isCritical = false;
-              if (o.priority == 'Urgente') isCritical = true;
-              if (o.deadline != null) {
+              bool isOverdue = false;
+              if (o.deadline != null && o.deadline!.isNotEmpty) {
                 try {
                   final dl = DateTime.parse(o.deadline!);
                   if (dl.isBefore(now)) {
-                    overdue++;
-                    isCritical = true;
+                    isOverdue = true;
                   }
                 } catch (_) {}
               }
-              if (isCritical) criticalOs.add(o);
+              
+              if (isOverdue) {
+                overdue++;
+                criticalOs.add(o);
+              } else if (o.priority == 'Urgente') {
+                urgent++;
+                criticalOs.add(o);
+              }
             }
           }
 
@@ -258,16 +262,25 @@ class DashboardContent extends StatelessWidget {
     } catch (_) {}
 
     String criticalTag = '';
-    if (showCriticalTag) {
-      if (os.deadline != null) {
-        try {
-          final dl = DateTime.parse(os.deadline!);
-          if (dl.isBefore(DateTime.now())) {
-            criticalTag = 'Atrasada';
-          }
-        } catch (_) {}
+    String deadlineStr = 'Sem prazo';
+    bool isOverdue = false;
+
+    if (os.deadline != null && os.deadline!.isNotEmpty) {
+      try {
+        final dl = DateTime.parse(os.deadline!);
+        deadlineStr = DateFormat("dd/MM/yy 'às' HH:mm").format(dl);
+        if (dl.isBefore(DateTime.now())) {
+          isOverdue = true;
+        }
+      } catch (_) {
+        deadlineStr = os.deadline!;
       }
-      if (criticalTag.isEmpty && os.priority == 'Urgente') {
+    }
+
+    if (showCriticalTag) {
+      if (isOverdue) {
+        criticalTag = 'Atrasada';
+      } else if (os.priority == 'Urgente') {
         criticalTag = 'Urgente';
       }
     }
@@ -305,7 +318,7 @@ class DashboardContent extends StatelessWidget {
             const SizedBox(height: 12),
             Text('$clientName • $eqName', style: const TextStyle(color: Colors.grey, fontSize: 14)),
             const SizedBox(height: 12),
-            Text('Hoje, 17:00', style: TextStyle(color: Colors.red.shade700, fontSize: 12)),
+            Text('Prazo: $deadlineStr', style: TextStyle(color: isOverdue ? Colors.red.shade700 : Colors.grey.shade700, fontSize: 12)),
           ],
         ),
       ),

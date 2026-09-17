@@ -223,8 +223,14 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
     _equipmentId = widget.os?.equipmentId;
     _description = widget.os?.description ?? '';
     _priority = widget.os?.priority ?? 'Média';
+    if (!['Baixa', 'Média', 'Alta', 'Urgente'].contains(_priority)) {
+      _priority = 'Média';
+    }
     _technicianId = widget.os?.technicianId;
     _status = widget.os?.status ?? 'Aberta';
+    if (!['Aberta', 'Atribuída', 'Em atendimento', 'Aguardando peça', 'Concluída', 'Cancelada'].contains(_status)) {
+      _status = 'Aberta';
+    }
     _diagnosis = widget.os?.diagnosis ?? '';
     _solution = widget.os?.solution ?? '';
     _deadline = widget.os?.deadline ?? '';
