@@ -33,7 +33,7 @@ class DbService {
     return await databaseFactory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 2,
+        version: 3,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
       ),
@@ -45,6 +45,9 @@ class DbService {
       await db.execute('ALTER TABLE technicians ADD COLUMN matricula TEXT');
       await db.execute('ALTER TABLE technicians ADD COLUMN senha TEXT');
     }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE clients ADD COLUMN createdAt TEXT');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -55,7 +58,8 @@ class DbService {
         document TEXT,
         phone TEXT,
         email TEXT,
-        address TEXT
+        address TEXT,
+        createdAt TEXT
       )
     ''');
 

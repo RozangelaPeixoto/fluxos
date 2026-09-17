@@ -5,6 +5,7 @@ class Client {
   String phone;
   String email;
   String address;
+  String createdAt;
 
   Client({
     required this.id,
@@ -13,6 +14,7 @@ class Client {
     required this.phone,
     required this.email,
     required this.address,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +25,7 @@ class Client {
       'phone': phone,
       'email': email,
       'address': address,
+      'createdAt': createdAt,
     };
   }
 
@@ -34,6 +37,7 @@ class Client {
       phone: map['phone'],
       email: map['email'],
       address: map['address'],
+      createdAt: map['createdAt'] ?? DateTime.now().toIso8601String(),
     );
   }
 }

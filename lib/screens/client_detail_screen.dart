@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/client.dart';
 import 'clients_screen.dart';
+import 'equipments_screen.dart';
+import '../widgets/work_order_card.dart';
 
 class ClientDetailScreen extends StatelessWidget {
   final Client client;
@@ -17,6 +19,15 @@ class ClientDetailScreen extends StatelessWidget {
         final clientEq = provider.equipments.where((e) => e.clientId == c.id).toList();
         final totalServices = clientOs.fold(0.0, (sum, o) => sum + o.totalCost);
 
+        String joinedDate = '';
+        try {
+          final dt = DateTime.parse(c.createdAt);
+          final months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+          joinedDate = 'Cliente desde ${months[dt.month - 1]} de ${dt.year}';
+        } catch (_) {}
+
+        final isPj = c.document.replaceAll(RegExp(r'[^0-9]'), '').length > 11;
+
         return Scaffold(
           appBar: AppBar(
             iconTheme: const IconThemeData(color: Colors.black87),
@@ -24,7 +35,8 @@ class ClientDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 22)),
-                const Text('Cliente desde janeiro de 2024', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                if (joinedDate.isNotEmpty)
+                  Text(joinedDate, style: const TextStyle(fontSize: 14, color: Colors.grey)),
               ],
             ),
             actions: [
@@ -51,13 +63,46 @@ class ClientDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('PESSOA JURÍDICA', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text(c.document, style: const TextStyle(fontSize: 18, color: Colors.black87)),
+                      Row(
+                        children: [
+                          Icon(isPj ? Icons.business : Icons.person, color: Colors.grey, size: 18),
+                          const SizedBox(width: 8),
+                          Text(isPj ? 'PESSOA JURÍDICA' : 'PESSOA FÍSICA', style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ]
+                      ),
                       const SizedBox(height: 12),
-                      Text('${c.phone} • ${c.email}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                      Row(
+                        children: [
+                          const Icon(Icons.badge, color: Colors.grey, size: 18),
+                          const SizedBox(width: 8),
+                          Text(c.document, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+                        ]
+                      ),
                       const SizedBox(height: 8),
-                      Text(c.address, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                      Row(
+                        children: [
+                          const Icon(Icons.phone, color: Colors.grey, size: 18),
+                          const SizedBox(width: 8),
+                          Text(c.phone, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                        ]
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.email, color: Colors.grey, size: 18),
+                          const SizedBox(width: 8),
+                          Text(c.email, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                        ]
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.location_on, color: Colors.grey, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(c.address, style: const TextStyle(fontSize: 14, color: Colors.grey))),
+                        ]
+                      ),
                     ],
                   ),
                 ),
@@ -76,43 +121,34 @@ class ClientDetailScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Equipamentos', style: TextStyle(fontSize: 18, color: Colors.black87)),
-                    Text('Ver todos', style: TextStyle(fontSize: 14, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
+                    GestureDetector(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EquipmentFormScreen())),
+                      child: Text('Adicionar', style: TextStyle(fontSize: 14, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                ...clientEq.take(2).map((eq) => Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${eq.type} ${eq.brand} ${eq.model}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 4),
-                      Text('Patrimônio ${eq.patrimony} • Ativo', style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                    ],
+                ...clientEq.map((eq) => GestureDetector(
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EquipmentFormScreen(equipment: eq))),
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${eq.type} ${eq.brand} ${eq.model}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 4),
+                        Text('Patrimônio ${eq.patrimony}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                      ],
+                    ),
                   ),
                 )),
                 const SizedBox(height: 24),
                 const Text('Ordens recentes', style: TextStyle(fontSize: 18, color: Colors.black87)),
                 const SizedBox(height: 12),
-                ...clientOs.take(2).map((os) => Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 8),
-                      Text(os.description, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                      const SizedBox(height: 12),
-                      _buildStatusPill(os.status),
-                    ],
-                  ),
-                )),
+                ...clientOs.take(3).map((os) => WorkOrderCard(workOrder: os)),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -125,6 +161,46 @@ class ClientDetailScreen extends StatelessWidget {
                     ),
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ClientFormScreen(client: c))),
                     child: const Text('Editar cliente', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red.shade700,
+                      side: BorderSide(color: Colors.red.shade200),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      if (clientEq.isNotEmpty || clientOs.isNotEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Não é possível excluir o cliente. Existem equipamentos ou ordens de serviço vinculados.'), backgroundColor: Colors.red),
+                        );
+                        return;
+                      }
+                      
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Excluir cliente'),
+                          content: const Text('Tem certeza que deseja excluir este cliente? Essa ação não pode ser desfeita.'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+                            TextButton(
+                              onPressed: () {
+                                provider.deleteClient(c.id);
+                                Navigator.pop(ctx);
+                                Navigator.pop(context);
+                              }, 
+                              child: const Text('Excluir', style: TextStyle(color: Colors.red))
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: const Text('Excluir cliente', style: TextStyle(fontSize: 16)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -148,16 +224,6 @@ class ClientDetailScreen extends StatelessWidget {
           Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatusPill(String status) {
-    Color color = Colors.blue.shade700;
-    Color bgColor = Colors.blue.shade50;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
-      child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 }

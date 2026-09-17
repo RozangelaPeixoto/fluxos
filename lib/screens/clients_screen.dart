@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/client.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/services.dart';
 import 'client_detail_screen.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -148,7 +150,9 @@ class ClientFormScreen extends StatefulWidget {
 
 class _ClientFormScreenState extends State<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  late String _name, _document, _phone, _email, _address;
+  late String _name, _document, _phone, _email, _address, _city, _uf, _cep;
+  
+  final phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: { "#": RegExp(r'[0-9]') });
 
   @override
   void initState() {
@@ -158,6 +162,9 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _phone = widget.client?.phone ?? '';
     _email = widget.client?.email ?? '';
     _address = widget.client?.address ?? '';
+    _city = '';
+    _uf = '';
+    _cep = '';
   }
 
   @override
@@ -208,24 +215,31 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               ),
               const SizedBox(height: 16),
               _buildField('Nome / Razão social', _name, (val) => _name = val, true),
-              _buildField('CPF / CNPJ', _document, (val) => _document = val, false),
+              _buildField('CPF / CNPJ', _document, (val) => _document = val, true),
               
               const SizedBox(height: 16),
               const Text('Contato', style: TextStyle(fontSize: 16, color: Colors.black87)),
               const SizedBox(height: 16),
-              _buildField('Telefone', _phone, (val) => _phone = val, false),
-              _buildField('E-mail', _email, (val) => _email = val, false),
+              _buildField('Telefone', _phone, (val) => _phone = val, true,
+                  inputFormatters: [phoneMask], keyboardType: TextInputType.phone),
+              _buildField('E-mail', _email, (val) => _email = val, true,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (val) {
+                    if (val == null || val.isEmpty) return 'Obrigatório';
+                    if (!val.contains('@')) return 'E-mail inválido';
+                    return null;
+                  }),
               
               const SizedBox(height: 16),
               const Text('Endereço', style: TextStyle(fontSize: 16, color: Colors.black87)),
               const SizedBox(height: 16),
-              _buildField('CEP', '', (_) {}, false),
-              _buildField('Rua e número', _address, (val) => _address = val, false),
+              _buildField('CEP', _cep, (val) => _cep = val, true),
+              _buildField('Rua e número', _address, (val) => _address = val, true),
               Row(
                 children: [
-                  Expanded(flex: 3, child: _buildField('Cidade / UF', '', (_) {}, false)),
+                  Expanded(flex: 3, child: _buildField('Cidade', _city, (val) => _city = val, true)),
                   const SizedBox(width: 16),
-                  Expanded(flex: 1, child: _buildField('', '', (_) {}, false)),
+                  Expanded(flex: 1, child: _buildField('UF', _uf, (val) => _uf = val, true)),
                 ],
               ),
             ],
@@ -246,15 +260,31 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
+                  final provider = Provider.of<AppProvider>(context, listen: false);
+                  
+                  bool isDuplicate = provider.clients.any((c) => c.document == _document && c.id != widget.client?.id);
+                  if (isDuplicate) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Já existe um cliente cadastrado com este CPF/CNPJ.'), backgroundColor: Colors.red),
+                    );
+                    return;
+                  }
+
+                  String finalAddress = _address;
+                  if (_city.isNotEmpty || _uf.isNotEmpty) {
+                    finalAddress += ' - $_city/$_uf';
+                  }
+
                   final newClient = Client(
                     id: widget.client?.id ?? const Uuid().v4(),
                     name: _name,
                     document: _document,
                     phone: _phone,
                     email: _email,
-                    address: _address,
+                    address: finalAddress,
+                    createdAt: widget.client?.createdAt ?? DateTime.now().toIso8601String(),
                   );
-                  Provider.of<AppProvider>(context, listen: false).saveClient(newClient);
+                  provider.saveClient(newClient);
                   Navigator.pop(context);
                 }
               },
@@ -266,7 +296,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     );
   }
 
-  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired) {
+  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired, {List<TextInputFormatter>? inputFormatters, TextInputType? keyboardType, String? Function(String?)? validator}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -278,6 +308,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           ],
           TextFormField(
             initialValue: initialValue,
+            inputFormatters: inputFormatters,
+            keyboardType: keyboardType,
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
@@ -286,7 +318,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
             ),
             onSaved: (val) => onSaved(val ?? ''),
-            validator: (val) => (isRequired && (val == null || val.isEmpty)) ? 'Obrigatório' : null,
+            validator: validator ?? (val) => (isRequired && (val == null || val.isEmpty)) ? 'Obrigatório' : null,
           ),
         ],
       ),
