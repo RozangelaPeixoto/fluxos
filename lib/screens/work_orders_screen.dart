@@ -5,6 +5,8 @@ import '../models/work_order.dart';
 import 'package:uuid/uuid.dart';
 import 'work_order_detail_screen.dart';
 import '../models/equipment.dart';
+import '../widgets/status_pill.dart';
+import 'package:intl/intl.dart';
 
 class WorkOrdersScreen extends StatefulWidget {
   const WorkOrdersScreen({super.key});
@@ -15,6 +17,8 @@ class WorkOrdersScreen extends StatefulWidget {
 
 class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
   String _searchQuery = '';
+  String? _selectedStatus;
+  String? _selectedPriority;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +32,13 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
           children: [
             const Text('Ordens de Serviço', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
             Consumer<AppProvider>(
-              builder: (context, provider, _) => Text(
-                '${provider.workOrders.length} ordens ativas',
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
+              builder: (context, provider, _) {
+                final activeCount = provider.workOrders.where((os) => os.status != 'Concluída' && os.status != 'Cancelada').length;
+                return Text(
+                  '$activeCount ordens ativas',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                );
+              },
             ),
           ],
         ),
@@ -50,11 +57,16 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
           var filtered = provider.workOrders.where((os) {
-            return _searchQuery.isEmpty || 
+            bool matchesSearch = _searchQuery.isEmpty || 
                 os.code.toLowerCase().contains(_searchQuery.toLowerCase()) || 
                 (provider.clients.any((c) => c.id == os.clientId && c.name.toLowerCase().contains(_searchQuery.toLowerCase()))) ||
                 (provider.equipments.any((e) => e.id == os.equipmentId && e.type.toLowerCase().contains(_searchQuery.toLowerCase()))) ||
                 (provider.technicians.any((t) => t.id == os.technicianId && t.name.toLowerCase().contains(_searchQuery.toLowerCase())));
+                
+            bool matchesStatus = _selectedStatus == null || os.status == _selectedStatus;
+            bool matchesPriority = _selectedPriority == null || os.priority == _selectedPriority;
+            
+            return matchesSearch && matchesStatus && matchesPriority;
           }).toList();
 
           filtered.sort((a, b) {
@@ -83,11 +95,9 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    _buildFilterPill('Status ▾'),
-                    const SizedBox(width: 8),
-                    _buildFilterPill('Prioridade ▾'),
-                    const SizedBox(width: 8),
-                    _buildFilterPill('Responsável ▾'),
+                    Expanded(child: _buildDropdownFilter('Status', ['Aberta', 'Atribuída', 'Em atendimento', 'Aguardando peça', 'Concluída', 'Cancelada'], _selectedStatus, (val) => setState(() => _selectedStatus = val))),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildDropdownFilter('Prioridade', ['Baixa', 'Média', 'Alta', 'Urgente'], _selectedPriority, (val) => setState(() => _selectedPriority = val))),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -116,6 +126,16 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                       final eq = provider.equipments.firstWhere((e) => e.id == os.equipmentId, orElse: () => throw Exception());
                       final techName = os.technicianId != null ? provider.technicians.firstWhere((t) => t.id == os.technicianId).name : 'Não atribuído';
                       
+                      String deadlineStr = 'Sem prazo';
+                      if (os.deadline != null && os.deadline!.isNotEmpty) {
+                        try {
+                          final dl = DateTime.parse(os.deadline!);
+                          deadlineStr = DateFormat("dd/MM/yy 'às' HH:mm").format(dl);
+                        } catch (_) {
+                          deadlineStr = os.deadline!;
+                        }
+                      }
+
                       return GestureDetector(
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => WorkOrderDetailScreen(workOrder: os))),
                         child: Container(
@@ -132,7 +152,7 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  _buildStatusPill(os.status),
+                                  StatusPill(status: os.status),
                                 ],
                               ),
                               const SizedBox(height: 12),
@@ -144,7 +164,7 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text('Técnico: $techName', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                                  Text('Prazo: 15 set', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                  Text('Prazo: $deadlineStr', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                                 ],
                               ),
                             ],
@@ -162,36 +182,27 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
     );
   }
 
-  Widget _buildFilterPill(String label) {
+  Widget _buildDropdownFilter(String hint, List<String> items, String? value, Function(String?) onChanged) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12)),
-    );
-  }
-
-  Widget _buildStatusPill(String status) {
-    Color color;
-    Color bgColor;
-    switch (status) {
-      case 'Aberta': color = Colors.blue; bgColor = Colors.blue.shade50; break;
-      case 'Em atendimento': color = Colors.blue.shade700; bgColor = Colors.blue.shade50; break;
-      case 'Aguardando peça': color = Colors.orange.shade700; bgColor = Colors.orange.shade50; break;
-      case 'Concluída': color = Colors.green.shade700; bgColor = Colors.green.shade50; break;
-      case 'Atrasada': color = Colors.red.shade700; bgColor = Colors.red.shade50; break;
-      default: color = Colors.grey; bgColor = Colors.grey.shade100;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          hint: Text(hint, style: const TextStyle(color: Colors.black54, fontSize: 14)),
+          value: value,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+          items: [
+            const DropdownMenuItem<String>(value: null, child: Text('Todos', style: TextStyle(fontSize: 14))),
+            ...items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e, style: const TextStyle(fontSize: 14)))),
+          ],
+          onChanged: onChanged,
+        ),
+      ),
     );
   }
 }

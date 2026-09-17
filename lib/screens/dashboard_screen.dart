@@ -9,6 +9,7 @@ import 'technicians_screen.dart';
 import 'work_orders_screen.dart';
 import 'work_order_detail_screen.dart';
 import '../models/work_order.dart';
+import '../widgets/status_pill.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -307,10 +308,10 @@ class DashboardContent extends StatelessWidget {
                 Row(
                   children: [
                     if (criticalTag.isNotEmpty) ...[
-                      _buildStatusPill(criticalTag),
+                      StatusPill(status: criticalTag),
                       const SizedBox(width: 8),
                     ],
-                    _buildStatusPill(os.status),
+                    StatusPill(status: os.status),
                   ],
                 ),
               ],
@@ -322,28 +323,6 @@ class DashboardContent extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildStatusPill(String status) {
-    Color color;
-    Color bgColor;
-    switch (status) {
-      case 'Aberta': color = Colors.blue; bgColor = Colors.blue.shade50; break;
-      case 'Em atendimento': color = Colors.blue.shade700; bgColor = Colors.blue.shade50; break;
-      case 'Aguardando peça': color = Colors.orange.shade700; bgColor = Colors.orange.shade50; break;
-      case 'Concluída': color = Colors.green.shade700; bgColor = Colors.green.shade50; break;
-      case 'Atrasada': color = Colors.red.shade700; bgColor = Colors.red.shade50; break;
-      case 'Urgente': color = Colors.red.shade700; bgColor = Colors.red.shade50; break;
-      default: color = Colors.grey; bgColor = Colors.grey.shade100;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 }

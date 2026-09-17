@@ -4,6 +4,7 @@ import '../providers/app_provider.dart';
 import '../models/work_order.dart';
 import 'work_orders_screen.dart';
 import 'package:intl/intl.dart';
+import '../widgets/status_pill.dart';
 
 class WorkOrderDetailScreen extends StatelessWidget {
   final WorkOrder workOrder;
@@ -67,8 +68,8 @@ class WorkOrderDetailScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildStatusPill(os.status),
-                          _buildPriorityPill(os.priority),
+                          StatusPill(status: os.status),
+                          StatusPill(status: os.priority, isPriority: true),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -83,7 +84,7 @@ class WorkOrderDetailScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildInfoCard('Cliente', client.name),
                 _buildInfoCard('Equipamento', '${eq.type} ${eq.brand} ${eq.model}'),
-                if (os.deadline != null) _buildInfoCard('Prazo', os.deadline!),
+                if (os.deadline != null) _buildInfoCard('Prazo', _formatDate(os.deadline!)),
                 if (os.diagnosis != null && os.diagnosis!.isNotEmpty) _buildInfoCard('Diagnóstico', os.diagnosis!),
                 if (os.solution != null && os.solution!.isNotEmpty) _buildInfoCard('Solução', os.solution!),
                 
@@ -137,11 +138,9 @@ class WorkOrderDetailScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Text('Histórico da OS', style: TextStyle(fontSize: 18, color: Colors.black87)),
                 const SizedBox(height: 16),
-                _buildHistoryItem(Icons.check_circle, Colors.green, 'Aberta', '12 set • 08:42'),
-                _buildHistoryItem(Icons.check_circle, Colors.green, 'Atribuída', '12 set • 09:10'),
-                _buildHistoryItem(Icons.arrow_circle_right, Colors.blue, 'Em atendimento', '12 set • 13:25', isLast: true),
-                _buildHistoryItem(Icons.circle_outlined, Colors.grey, 'Aguardando peça', 'Opcional', isPending: true),
-                _buildHistoryItem(Icons.circle_outlined, Colors.grey, 'Concluída', 'Pendente', isPending: true, isVeryLast: true),
+                _buildHistoryItem(Icons.check_circle, Colors.green, 'Aberta', _formatDate(os.openDate)),
+                if (os.technicianId != null) _buildHistoryItem(Icons.check_circle, Colors.green, 'Atribuída', _formatDate(os.openDate)),
+                _buildHistoryItem(Icons.arrow_circle_right, Colors.blue, 'Status Atual', os.status, isLast: true, isVeryLast: true),
                 const SizedBox(height: 24),
               ],
             ),
@@ -166,6 +165,16 @@ class WorkOrderDetailScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _formatDate(String dateStr) {
+    if (dateStr.isEmpty) return 'Sem data';
+    try {
+      final d = DateTime.parse(dateStr);
+      return DateFormat("dd/MM/yy 'às' HH:mm").format(d);
+    } catch (_) {
+      return dateStr;
+    }
   }
 
   Widget _buildInfoCard(String title, String content) {
@@ -212,41 +221,6 @@ class WorkOrderDetailScreen extends StatelessWidget {
           ],
         )
       ],
-    );
-  }
-
-  Widget _buildStatusPill(String status) {
-    Color color;
-    Color bgColor;
-    switch (status) {
-      case 'Aberta': color = Colors.blue; bgColor = Colors.blue.shade50; break;
-      case 'Em atendimento': color = Colors.blue.shade700; bgColor = Colors.blue.shade50; break;
-      case 'Aguardando peça': color = Colors.orange.shade700; bgColor = Colors.orange.shade50; break;
-      case 'Concluída': color = Colors.green.shade700; bgColor = Colors.green.shade50; break;
-      case 'Cancelada': color = Colors.grey; bgColor = Colors.grey.shade100; break;
-      default: color = Colors.grey; bgColor = Colors.grey.shade100;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
-      child: Text(status, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildPriorityPill(String priority) {
-    Color color;
-    Color bgColor;
-    switch (priority) {
-      case 'Urgente': color = Colors.red.shade700; bgColor = Colors.red.shade50; break;
-      case 'Alta': color = Colors.orange.shade700; bgColor = Colors.orange.shade50; break;
-      case 'Média': color = Colors.orange; bgColor = Colors.orange.shade50; break;
-      case 'Baixa': color = Colors.green; bgColor = Colors.green.shade50; break;
-      default: color = Colors.grey; bgColor = Colors.grey.shade100;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
-      child: Text('$priority prioridade', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
     );
   }
 }
