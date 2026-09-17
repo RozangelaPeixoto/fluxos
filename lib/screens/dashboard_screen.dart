@@ -7,6 +7,7 @@ import 'clients_screen.dart';
 import 'equipments_screen.dart';
 import 'technicians_screen.dart';
 import 'work_orders_screen.dart';
+import 'work_order_detail_screen.dart';
 import '../models/work_order.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -194,14 +195,14 @@ class DashboardContent extends StatelessWidget {
                 ],
 
                 const SizedBox(height: 24),
-                _buildSectionHeader('Ordens críticas', 'Ver todas'),
+                _buildSectionHeader(context, 'Ordens críticas', 'Ver todas'),
                 const SizedBox(height: 12),
-                ...criticalOs.take(3).map((os) => _buildOsCard(context, os, provider)),
+                ...criticalOs.take(3).map((os) => _buildOsCard(context, os, provider, showCriticalTag: true)),
 
                 const SizedBox(height: 24),
-                _buildSectionHeader('Ordens recentes', 'Ver histórico'),
+                _buildSectionHeader(context, 'Ordens recentes', ''),
                 const SizedBox(height: 12),
-                ...provider.workOrders.take(3).map((os) => _buildOsCard(context, os, provider)),
+                ...provider.workOrders.toList().reversed.take(3).map((os) => _buildOsCard(context, os, provider, showCriticalTag: false)),
               ],
             ),
           );
@@ -230,17 +231,24 @@ class DashboardContent extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title, String action) {
+  Widget _buildSectionHeader(BuildContext context, String title, String action) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title, style: const TextStyle(fontSize: 18, color: Colors.black87)),
-        Text(action, style: TextStyle(fontSize: 14, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
+        if (action.isNotEmpty)
+          GestureDetector(
+            onTap: () {
+              final state = context.findAncestorStateOfType<_DashboardScreenState>();
+              state?._onItemTapped(1);
+            },
+            child: Text(action, style: TextStyle(fontSize: 14, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
+          ),
       ],
     );
   }
 
-  Widget _buildOsCard(BuildContext context, WorkOrder os, AppProvider provider) {
+  Widget _buildOsCard(BuildContext context, WorkOrder os, AppProvider provider, {bool showCriticalTag = false}) {
     String clientName = '';
     String eqName = '';
     try {
@@ -249,29 +257,57 @@ class DashboardContent extends StatelessWidget {
       eqName = eq.type;
     } catch (_) {}
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              _buildStatusPill(os.status),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text('$clientName • $eqName', style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          const SizedBox(height: 12),
-          Text('Hoje, 17:00', style: TextStyle(color: Colors.red.shade700, fontSize: 12)),
-        ],
+    String criticalTag = '';
+    if (showCriticalTag) {
+      if (os.deadline != null) {
+        try {
+          final dl = DateTime.parse(os.deadline!);
+          if (dl.isBefore(DateTime.now())) {
+            criticalTag = 'Atrasada';
+          }
+        } catch (_) {}
+      }
+      if (criticalTag.isEmpty && os.priority == 'Urgente') {
+        criticalTag = 'Urgente';
+      }
+    }
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => WorkOrderDetailScreen(workOrder: os)));
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Row(
+                  children: [
+                    if (criticalTag.isNotEmpty) ...[
+                      _buildStatusPill(criticalTag),
+                      const SizedBox(width: 8),
+                    ],
+                    _buildStatusPill(os.status),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text('$clientName • $eqName', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+            const SizedBox(height: 12),
+            Text('Hoje, 17:00', style: TextStyle(color: Colors.red.shade700, fontSize: 12)),
+          ],
+        ),
       ),
     );
   }

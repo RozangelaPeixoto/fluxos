@@ -57,6 +57,13 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                 (provider.technicians.any((t) => t.id == os.technicianId && t.name.toLowerCase().contains(_searchQuery.toLowerCase())));
           }).toList();
 
+          filtered.sort((a, b) {
+            const priorities = {'Urgente': 0, 'Alta': 1, 'Média': 2, 'Baixa': 3};
+            int pA = priorities[a.priority] ?? 4;
+            int pB = priorities[b.priority] ?? 4;
+            return pA.compareTo(pB);
+          });
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -310,6 +317,17 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                     ),
                   )
                 ],
+              ),
+              const SizedBox(height: 16),
+              const Text('Status da OS', style: TextStyle(color: Colors.black54)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _status,
+                decoration: _fieldDeco(),
+                items: ['Aberta', 'Atribuída', 'Em atendimento', 'Aguardando peça', 'Concluída', 'Cancelada']
+                    .map<DropdownMenuItem<String>>((s) => DropdownMenuItem<String>(value: s, child: Text(s)))
+                    .toList(),
+                onChanged: (val) => setState(() => _status = val!),
               ),
               const SizedBox(height: 16),
               const Text('Responsável', style: TextStyle(color: Colors.black54)),

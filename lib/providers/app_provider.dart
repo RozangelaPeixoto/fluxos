@@ -63,7 +63,7 @@ class AppProvider with ChangeNotifier {
       clientId: c1.id,
       equipmentId: e1.id,
       description: 'Não liga',
-      priority: 'Atrasada',
+      priority: 'Alta',
       technicianId: t1.id,
       openDate: formatter.format(now.subtract(const Duration(days: 2))),
       deadline: formatter.format(now.subtract(const Duration(days: 1))),
