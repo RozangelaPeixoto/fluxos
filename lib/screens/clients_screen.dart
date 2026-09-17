@@ -151,8 +151,11 @@ class ClientFormScreen extends StatefulWidget {
 class _ClientFormScreenState extends State<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late String _name, _document, _phone, _email, _address, _city, _uf, _cep;
+  late String _clientType;
   
   final phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: { "#": RegExp(r'[0-9]') });
+  final cepMask = MaskTextInputFormatter(mask: '#####-###', filter: { "#": RegExp(r'[0-9]') });
+  late MaskTextInputFormatter docMask;
 
   @override
   void initState() {
@@ -165,6 +168,14 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _city = '';
     _uf = '';
     _cep = '';
+
+    _clientType = widget.client != null ? (widget.client!.document.replaceAll(RegExp(r'[^0-9]'), '').length > 11 ? 'Pessoa jurídica' : 'Pessoa física') : 'Pessoa jurídica';
+    
+    docMask = MaskTextInputFormatter(
+      mask: _clientType == 'Pessoa jurídica' ? '##.###.###/####-##' : '###.###.###-##', 
+      filter: { "#": RegExp(r'[0-9]') },
+      initialText: _document,
+    );
   }
 
   @override
@@ -203,7 +214,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               const Text('Tipo', style: TextStyle(color: Colors.black54, fontSize: 12)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: 'Pessoa jurídica',
+                value: _clientType,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
@@ -211,11 +222,19 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
                 ),
                 items: ['Pessoa jurídica', 'Pessoa física'].map<DropdownMenuItem<String>>((t) => DropdownMenuItem<String>(value: t, child: Text(t))).toList(),
-                onChanged: (_) {},
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _clientType = val;
+                      docMask.updateMask(mask: _clientType == 'Pessoa jurídica' ? '##.###.###/####-##' : '###.###.###-##');
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 16),
               _buildField('Nome / Razão social', _name, (val) => _name = val, true),
-              _buildField('CPF / CNPJ', _document, (val) => _document = val, true),
+              _buildField('CPF / CNPJ', _document, (val) => _document = val, true,
+                  inputFormatters: [docMask], keyboardType: TextInputType.number),
               
               const SizedBox(height: 16),
               const Text('Contato', style: TextStyle(fontSize: 16, color: Colors.black87)),
@@ -233,7 +252,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               const SizedBox(height: 16),
               const Text('Endereço', style: TextStyle(fontSize: 16, color: Colors.black87)),
               const SizedBox(height: 16),
-              _buildField('CEP', _cep, (val) => _cep = val, true),
+              _buildField('CEP', _cep, (val) => _cep = val, true,
+                  inputFormatters: [cepMask], keyboardType: TextInputType.number),
               _buildField('Rua e número', _address, (val) => _address = val, true),
               Row(
                 children: [
