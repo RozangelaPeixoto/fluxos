@@ -6,9 +6,12 @@ class AppTheme {
       primarySwatch: Colors.red,
       scaffoldBackgroundColor: const Color(0xFFF3F4F6),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFFAFAFA),
         foregroundColor: Colors.black87,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        toolbarHeight: 80,
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         selectedItemColor: Colors.red,

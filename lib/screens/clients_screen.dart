@@ -18,10 +18,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF3F4F6),
-        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -166,10 +163,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF3F4F6),
-        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -10,6 +10,7 @@ import 'work_orders_screen.dart';
 import 'work_order_detail_screen.dart';
 import '../models/work_order.dart';
 import '../widgets/status_pill.dart';
+import '../widgets/work_order_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -72,10 +73,7 @@ class DashboardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF3F4F6),
-        elevation: 0,
         title: Consumer<AppProvider>(
           builder: (context, provider, _) {
             String name = provider.loggedUser?.name ?? 'Usuário';
@@ -254,75 +252,6 @@ class DashboardContent extends StatelessWidget {
   }
 
   Widget _buildOsCard(BuildContext context, WorkOrder os, AppProvider provider, {bool showCriticalTag = false}) {
-    String clientName = '';
-    String eqName = '';
-    try {
-      clientName = provider.clients.firstWhere((c) => c.id == os.clientId).name;
-      var eq = provider.equipments.firstWhere((e) => e.id == os.equipmentId);
-      eqName = eq.type;
-    } catch (_) {}
-
-    String criticalTag = '';
-    String deadlineStr = 'Sem prazo';
-    bool isOverdue = false;
-
-    if (os.deadline != null && os.deadline!.isNotEmpty) {
-      try {
-        final dl = DateTime.parse(os.deadline!);
-        deadlineStr = DateFormat("dd/MM/yy 'às' HH:mm").format(dl);
-        if (dl.isBefore(DateTime.now())) {
-          isOverdue = true;
-        }
-      } catch (_) {
-        deadlineStr = os.deadline!;
-      }
-    }
-
-    if (showCriticalTag) {
-      if (isOverdue) {
-        criticalTag = 'Atrasada';
-      }
-    }
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => WorkOrderDetailScreen(workOrder: os)));
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Row(
-                  children: [
-                    if (criticalTag == 'Atrasada') ...[
-                      StatusPill(status: criticalTag),
-                      const SizedBox(width: 8),
-                    ],
-                    StatusPill(status: os.priority, isPriority: true),
-                    const SizedBox(width: 8),
-                    StatusPill(status: os.status),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text('$clientName • $eqName', style: const TextStyle(color: Colors.grey, fontSize: 14)),
-            const SizedBox(height: 12),
-            Text('Prazo: $deadlineStr', style: TextStyle(color: isOverdue ? Colors.red.shade700 : Colors.grey.shade700, fontSize: 12)),
-          ],
-        ),
-      ),
-    );
+    return WorkOrderCard(workOrder: os, showCriticalTag: showCriticalTag);
   }
 }

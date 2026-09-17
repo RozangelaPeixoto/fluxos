@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'work_order_detail_screen.dart';
 import '../models/equipment.dart';
 import '../widgets/status_pill.dart';
+import '../widgets/work_order_card.dart';
 import 'package:intl/intl.dart';
 
 class WorkOrdersScreen extends StatefulWidget {
@@ -23,10 +24,7 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF3F4F6),
-        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -121,62 +119,7 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                     itemCount: filtered.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
-                      final os = filtered[index];
-                      final client = provider.clients.firstWhere((c) => c.id == os.clientId, orElse: () => throw Exception());
-                      final eq = provider.equipments.firstWhere((e) => e.id == os.equipmentId, orElse: () => throw Exception());
-                      final techName = os.technicianId != null ? provider.technicians.firstWhere((t) => t.id == os.technicianId).name : 'Não atribuído';
-                      
-                      String deadlineStr = 'Sem prazo';
-                      if (os.deadline != null && os.deadline!.isNotEmpty) {
-                        try {
-                          final dl = DateTime.parse(os.deadline!);
-                          deadlineStr = DateFormat("dd/MM/yy 'às' HH:mm").format(dl);
-                        } catch (_) {
-                          deadlineStr = os.deadline!;
-                        }
-                      }
-
-                      return GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => WorkOrderDetailScreen(workOrder: os))),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  Row(
-                                    children: [
-                                      StatusPill(status: os.priority, isPriority: true),
-                                      const SizedBox(width: 8),
-                                      StatusPill(status: os.status),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(client.name, style: const TextStyle(color: Colors.black87, fontSize: 16)),
-                              const SizedBox(height: 4),
-                              Text(eq.type, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                              const SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Técnico: $techName', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                                  Text('Prazo: $deadlineStr', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                      return WorkOrderCard(workOrder: filtered[index]);
                     },
                   ),
                 ),
@@ -259,10 +202,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
     List<Equipment> equipmentsForClient = _clientId == null ? [] : provider.equipments.where((e) => e.clientId == _clientId).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF3F4F6),
-        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

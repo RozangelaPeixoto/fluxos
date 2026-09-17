@@ -18,10 +18,7 @@ class ClientDetailScreen extends StatelessWidget {
         final totalServices = clientOs.fold(0.0, (sum, o) => sum + o.totalCost);
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF3F4F6),
           appBar: AppBar(
-            backgroundColor: const Color(0xFFF3F4F6),
-            elevation: 0,
             iconTheme: const IconThemeData(color: Colors.black87),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
