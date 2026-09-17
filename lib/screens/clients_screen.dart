@@ -110,7 +110,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                                   children: [
                                     Text(client.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                     const SizedBox(height: 4),
-                                    Text('Empresa • ${client.address}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                                    Text(client.document.replaceAll(RegExp(r'[^0-9]'), '').length > 11 ? 'Pessoa Jurídica' : 'Pessoa Física', style: const TextStyle(color: Colors.grey, fontSize: 14)),
                                   ],
                                 ),
                               ),

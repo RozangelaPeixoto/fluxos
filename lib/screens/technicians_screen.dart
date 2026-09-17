@@ -107,8 +107,23 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
                                   children: [
                                     Text(tech.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                     const SizedBox(height: 4),
-                                    Text('${tech.specialty} • ${tech.isActive == 1 ? 'Ativo' : 'Inativo'}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                                    Text(tech.specialty, style: const TextStyle(color: Colors.grey, fontSize: 14)),
                                   ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: tech.isActive == 1 ? Colors.green.shade50 : Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  tech.isActive == 1 ? 'Ativo' : 'Inativo',
+                                  style: TextStyle(
+                                    color: tech.isActive == 1 ? Colors.green.shade700 : Colors.grey.shade700,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],

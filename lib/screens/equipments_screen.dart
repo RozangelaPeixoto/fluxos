@@ -100,7 +100,7 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
                               CircleAvatar(
                                 backgroundColor: Colors.red.shade50,
                                 foregroundColor: Colors.red.shade700,
-                                child: const Icon(Icons.print),
+                                child: const Icon(Icons.work),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
