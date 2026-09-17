@@ -39,8 +39,8 @@ class AppProvider with ChangeNotifier {
 
   // --- Mock Data ---
   Future<void> _generateMockData() async {
-    var c1 = Client(id: _uuid.v4(), name: 'Clínica Vida', document: '11.111.111/0001-11', phone: '11999999999', email: 'contato@vida.com', address: 'Rua A, 123');
-    var c2 = Client(id: _uuid.v4(), name: 'Mercado Central', document: '22.222.222/0001-22', phone: '11888888888', email: 'contato@mercado.com', address: 'Rua B, 456');
+    var c1 = Client(id: _uuid.v4(), name: 'Clínica Vida', document: '11.111.111/0001-11', phone: '11999999999', email: 'contato@vida.com', address: 'Rua A, 123', createdAt: DateTime.now().toIso8601String());
+    var c2 = Client(id: _uuid.v4(), name: 'Mercado Central', document: '22.222.222/0001-22', phone: '11888888888', email: 'contato@mercado.com', address: 'Rua B, 456', createdAt: DateTime.now().toIso8601String());
     await _db.insertClient(c1);
     await _db.insertClient(c2);
 
