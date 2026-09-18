@@ -5,6 +5,8 @@ import '../models/client.dart';
 import 'clients_screen.dart';
 import 'equipments_screen.dart';
 import '../widgets/work_order_card.dart';
+import '../widgets/status_pill.dart';
+import 'work_order_detail_screen.dart';
 
 class ClientDetailScreen extends StatelessWidget {
   final Client client;
@@ -148,15 +150,50 @@ class ClientDetailScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Text('Ordens recentes', style: TextStyle(fontSize: 18, color: Colors.black87)),
                 const SizedBox(height: 12),
-                ...clientOs.take(3).map((os) => WorkOrderCard(workOrder: os)),
+                ...clientOs.take(3).map((os) {
+                  final eq = provider.equipments.where((e) => e.id == os.equipmentId).firstOrNull;
+                  final eqName = eq != null ? '${eq.type} ${eq.brand} ${eq.model}' : 'Equipamento desconhecido';
+                  
+                  return GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => WorkOrderDetailScreen(workOrder: os))),
+                    child: Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Row(
+                                children: [
+                                  StatusPill(status: os.priority, isPriority: true),
+                                  const SizedBox(width: 8),
+                                  StatusPill(status: os.status),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(eqName, style: const TextStyle(color: Colors.black87, fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text(os.description, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black87,
-                      side: BorderSide(color: Colors.grey.shade300),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade700,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ClientFormScreen(client: c))),
