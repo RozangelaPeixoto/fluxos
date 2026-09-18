@@ -4,6 +4,7 @@ import '../providers/app_provider.dart';
 import '../models/client.dart';
 import 'clients_screen.dart';
 import 'equipments_screen.dart';
+import 'equipment_detail_screen.dart';
 import '../widgets/work_order_card.dart';
 import '../widgets/status_pill.dart';
 import 'work_order_detail_screen.dart';
@@ -118,38 +119,42 @@ class ClientDetailScreen extends StatelessWidget {
                     Expanded(child: _buildStatSquare('R\$ ${totalServices.toStringAsFixed(0)}', 'Serviços')),
                   ],
                 ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Equipamentos', style: TextStyle(fontSize: 18, color: Colors.black87)),
-                    GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EquipmentFormScreen())),
-                      child: Text('Adicionar', style: TextStyle(fontSize: 14, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ...clientEq.map((eq) => GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EquipmentFormScreen(equipment: eq))),
-                  child: Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${eq.type} ${eq.brand} ${eq.model}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        const SizedBox(height: 4),
-                        Text('Patrimônio ${eq.patrimony}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                      ],
-                    ),
+                if (clientEq.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Equipamentos', style: TextStyle(fontSize: 18, color: Colors.black87)),
+                      GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EquipmentFormScreen())),
+                        child: Text('Adicionar', style: TextStyle(fontSize: 14, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
                   ),
-                )),
-                const SizedBox(height: 24),
-                const Text('Ordens recentes', style: TextStyle(fontSize: 18, color: Colors.black87)),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
+                  ...clientEq.map((eq) => GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EquipmentDetailScreen(equipment: eq))),
+                    child: Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${eq.type} ${eq.brand} ${eq.model}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text('Patrimônio ${eq.patrimony}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                        ],
+                      ),
+                    ),
+                  )),
+                ],
+                
+                if (clientOs.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  const Text('Ordens recentes', style: TextStyle(fontSize: 18, color: Colors.black87)),
+                  const SizedBox(height: 12),
                 ...clientOs.take(3).map((os) {
                   final eq = provider.equipments.where((e) => e.id == os.equipmentId).firstOrNull;
                   final eqName = eq != null ? '${eq.type} ${eq.brand} ${eq.model}' : 'Equipamento desconhecido';
@@ -186,6 +191,7 @@ class ClientDetailScreen extends StatelessWidget {
                     ),
                   );
                 }),
+                ],
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,

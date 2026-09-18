@@ -1,8 +1,10 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/equipment.dart';
 import 'package:uuid/uuid.dart';
+import 'equipment_detail_screen.dart';
 
 class EquipmentsScreen extends StatefulWidget {
   const EquipmentsScreen({super.key});
@@ -88,7 +90,7 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
                       final eq = filtered[index];
                       final client = provider.clients.firstWhere((c) => c.id == eq.clientId, orElse: () => throw Exception('Client not found'));
                       return GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EquipmentFormScreen(equipment: eq))),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EquipmentDetailScreen(equipment: eq))),
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -100,7 +102,7 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
                               CircleAvatar(
                                 backgroundColor: Colors.red.shade50,
                                 foregroundColor: Colors.red.shade700,
-                                child: const Icon(Icons.work),
+                                child: const Icon(Icons.precision_manufacturing),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -150,7 +152,13 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
     _brand = widget.equipment?.brand ?? '';
     _model = widget.equipment?.model ?? '';
     _serial = widget.equipment?.serialNumber ?? '';
-    _patrimony = widget.equipment?.patrimony ?? '';
+    
+    if (widget.equipment != null) {
+      _patrimony = widget.equipment!.patrimony;
+    } else {
+      _patrimony = 'PAT-${Random().nextInt(99999).toString().padLeft(5, '0')}';
+    }
+    
     _observations = widget.equipment?.observations ?? '';
   }
 
@@ -209,7 +217,7 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
               _buildField('Marca', _brand, (val) => _brand = val, false),
               _buildField('Modelo', _model, (val) => _model = val, false),
               _buildField('Número de Série', _serial, (val) => _serial = val, false),
-              _buildField('Patrimônio', _patrimony, (val) => _patrimony = val, false),
+              _buildField('Patrimônio', _patrimony, (val) => _patrimony = val, false, readOnly: true),
               _buildField('Observações', _observations, (val) => _observations = val, false),
             ],
           ),
@@ -251,7 +259,7 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
     );
   }
 
-  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired) {
+  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired, {bool readOnly = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -261,9 +269,11 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
           const SizedBox(height: 8),
           TextFormField(
             initialValue: initialValue,
+            readOnly: readOnly,
+            style: TextStyle(color: readOnly ? Colors.black54 : Colors.black87),
             decoration: InputDecoration(
               filled: true,
-              fillColor: Colors.white,
+              fillColor: readOnly ? Colors.grey.shade100 : Colors.white,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
             ),
