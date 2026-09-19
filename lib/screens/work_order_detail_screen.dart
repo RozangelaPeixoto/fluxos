@@ -300,16 +300,20 @@ class WorkOrderDetailScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: flow.map((statusStep) {
-              bool isReached = history.containsKey(statusStep);
+              bool isReached = history.containsKey(statusStep) || statusStep == 'Aberta';
               bool isCurrent = os.status == statusStep;
               bool isCancelStep = statusStep == 'Cancelada';
 
               String dateStr = '';
-              if (isReached) {
+              if (history.containsKey(statusStep)) {
                 try {
                   dateStr = formatDate.format(DateTime.parse(history[statusStep]));
                 } catch (_) {}
-              } else if (isCurrent && os.statusHistory.isEmpty) { // Fallback para mock/legacy que não tem history atualizado
+              } else if (statusStep == 'Aberta') {
+                try {
+                  dateStr = formatDate.format(DateTime.parse(os.openDate));
+                } catch (_) {}
+              } else if (isCurrent && os.statusHistory.isEmpty) { // Fallback para mock/legacy
                 try {
                   dateStr = formatDate.format(DateTime.parse(os.openDate));
                 } catch (_) {}

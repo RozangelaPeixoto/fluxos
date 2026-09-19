@@ -194,7 +194,14 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         } catch (_) {}
       }
       
-      if (widget.os == null || widget.os!.status != _status) {
+      if (widget.os == null) {
+        // Nova OS: sempre foi 'Aberta'
+        final now = DateTime.now().toIso8601String();
+        historyMap['Aberta'] = now;
+        if (_status != 'Aberta') {
+          historyMap[_status] = now;
+        }
+      } else if (widget.os!.status != _status) {
         historyMap[_status] = DateTime.now().toIso8601String();
       }
 
