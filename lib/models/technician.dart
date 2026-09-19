@@ -5,7 +5,7 @@ class Technician {
   String specialty;
   String matricula;
   String senha;
-  int isActive; 
+  int isActive;
   String createdAt;
 
   Technician({

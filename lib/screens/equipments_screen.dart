@@ -1,9 +1,13 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/app_provider.dart';
 import '../models/equipment.dart';
+
 import 'package:uuid/uuid.dart';
+
 import 'equipment_detail_screen.dart';
 
 class EquipmentsScreen extends StatefulWidget {
@@ -19,11 +23,22 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFAFAFA),
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Equipamentos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
+            const Text(
+              'Equipamentos',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Colors.black87,
+              ),
+            ),
             Consumer<AppProvider>(
               builder: (context, provider, _) => Text(
                 '${provider.equipments.length} equipamentos cadastrados',
@@ -32,24 +47,13 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
             ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.red.shade50,
-              foregroundColor: Colors.red.shade700,
-              radius: 20,
-              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          )
-        ],
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
           var filtered = provider.equipments.where((e) {
-            return e.type.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                   e.brand.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                   e.model.toLowerCase().contains(_searchQuery.toLowerCase());
+            return e.type.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                e.brand.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                e.model.toLowerCase().contains(_searchQuery.toLowerCase());
           }).toList();
 
           return Padding(
@@ -62,7 +66,10 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   onChanged: (val) => setState(() => _searchQuery = val),
                 ),
@@ -74,11 +81,18 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade700,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     icon: const Icon(Icons.add),
                     label: const Text('Cadastrar equipamento'),
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EquipmentFormScreen())),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EquipmentFormScreen(),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -88,9 +102,18 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final eq = filtered[index];
-                      final client = provider.clients.firstWhere((c) => c.id == eq.clientId, orElse: () => throw Exception('Client not found'));
+                      final client = provider.clients.firstWhere(
+                        (c) => c.id == eq.clientId,
+                        orElse: () => throw Exception('Client not found'),
+                      );
                       return GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EquipmentDetailScreen(equipment: eq))),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                EquipmentDetailScreen(equipment: eq),
+                          ),
+                        ),
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -102,16 +125,30 @@ class _EquipmentsScreenState extends State<EquipmentsScreen> {
                               CircleAvatar(
                                 backgroundColor: Colors.red.shade50,
                                 foregroundColor: Colors.red.shade700,
-                                child: const Icon(Icons.precision_manufacturing),
+                                child: const Icon(
+                                  Icons.precision_manufacturing,
+                                ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('${eq.type} ${eq.brand}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    Text(
+                                      '${eq.type} ${eq.brand}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
-                                    Text('Cliente: ${client.name}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                                    Text(
+                                      'Cliente: ${client.name}',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 14,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -152,13 +189,13 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
     _brand = widget.equipment?.brand ?? '';
     _model = widget.equipment?.model ?? '';
     _serial = widget.equipment?.serialNumber ?? '';
-    
+
     if (widget.equipment != null) {
       _patrimony = widget.equipment!.patrimony;
     } else {
       _patrimony = 'PAT-${Random().nextInt(99999).toString().padLeft(5, '0')}';
     }
-    
+
     _observations = widget.equipment?.observations ?? '';
   }
 
@@ -166,26 +203,31 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context, listen: false);
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFAFAFA),
+        elevation: 0,
+        scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.equipment == null ? 'Cadastrar equipamento' : 'Editar equipamento', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 22)),
-            const Text('Dados do equipamento', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            Text(
+              widget.equipment == null
+                  ? 'Cadastrar equipamento'
+                  : 'Editar equipamento',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                fontSize: 22,
+              ),
+            ),
+            const Text(
+              'Dados do equipamento',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.red.shade50,
-              foregroundColor: Colors.red.shade700,
-              radius: 20,
-              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          )
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -194,7 +236,10 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Vinculação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Vinculação',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               const Text('Cliente', style: TextStyle(color: Colors.black54)),
               const SizedBox(height: 8),
@@ -203,22 +248,59 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
                 ),
-                items: provider.clients.map<DropdownMenuItem<String>>((c) => DropdownMenuItem<String>(value: c.id, child: Text(c.name))).toList(),
+                items: provider.clients
+                    .map<DropdownMenuItem<String>>(
+                      (c) => DropdownMenuItem<String>(
+                        value: c.id,
+                        child: Text(c.name),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (val) => setState(() => _clientId = val),
                 validator: (val) => val == null ? 'Obrigatório' : null,
               ),
               const SizedBox(height: 24),
-              const Text('Identificação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Identificação',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
-              _buildField('Tipo (Ex: Ar-condicionado)', _type, (val) => _type = val, true),
+              _buildField(
+                'Tipo (Ex: Ar-condicionado)',
+                _type,
+                (val) => _type = val,
+                true,
+              ),
               _buildField('Marca', _brand, (val) => _brand = val, false),
               _buildField('Modelo', _model, (val) => _model = val, false),
-              _buildField('Número de Série', _serial, (val) => _serial = val, false),
-              _buildField('Patrimônio', _patrimony, (val) => _patrimony = val, false, readOnly: true),
-              _buildField('Observações', _observations, (val) => _observations = val, false),
+              _buildField(
+                'Número de Série',
+                _serial,
+                (val) => _serial = val,
+                false,
+              ),
+              _buildField(
+                'Patrimônio',
+                _patrimony,
+                (val) => _patrimony = val,
+                false,
+                readOnly: true,
+              ),
+              _buildField(
+                'Observações',
+                _observations,
+                (val) => _observations = val,
+                false,
+              ),
             ],
           ),
         ),
@@ -232,7 +314,9 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red.shade700,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
@@ -251,7 +335,10 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Salvar equipamento', style: TextStyle(fontSize: 16)),
+              child: const Text(
+                'Salvar equipamento',
+                style: TextStyle(fontSize: 16),
+              ),
             ),
           ),
         ),
@@ -259,7 +346,13 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
     );
   }
 
-  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired, {bool readOnly = false}) {
+  Widget _buildField(
+    String label,
+    String initialValue,
+    Function(String) onSaved,
+    bool isRequired, {
+    bool readOnly = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -274,11 +367,19 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
             decoration: InputDecoration(
               filled: true,
               fillColor: readOnly ? Colors.grey.shade100 : Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
             ),
             onSaved: (val) => onSaved(val ?? ''),
-            validator: (val) => (isRequired && (val == null || val.isEmpty)) ? 'Obrigatório' : null,
+            validator: (val) => (isRequired && (val == null || val.isEmpty))
+                ? 'Obrigatório'
+                : null,
           ),
         ],
       ),

@@ -1,7 +1,9 @@
 import 'dart:io';
+
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
 import '../models/client.dart';
 import '../models/technician.dart';
 import '../models/equipment.dart';
@@ -29,7 +31,7 @@ class DbService {
     } else {
       path = join(await getDatabasesPath(), 'fluxos.db');
     }
-    
+
     return await databaseFactory.openDatabase(
       path,
       options: OpenDatabaseOptions(
@@ -52,11 +54,17 @@ class DbService {
       await db.execute('ALTER TABLE technicians ADD COLUMN createdAt TEXT');
     }
     if (oldVersion < 5) {
-      await db.execute('ALTER TABLE work_orders ADD COLUMN discount REAL DEFAULT 0.0');
-      await db.execute('ALTER TABLE work_orders ADD COLUMN photos TEXT DEFAULT ""');
+      await db.execute(
+        'ALTER TABLE work_orders ADD COLUMN discount REAL DEFAULT 0.0',
+      );
+      await db.execute(
+        'ALTER TABLE work_orders ADD COLUMN photos TEXT DEFAULT ""',
+      );
     }
     if (oldVersion < 6) {
-      await db.execute('ALTER TABLE work_orders ADD COLUMN statusHistory TEXT DEFAULT "{}"');
+      await db.execute(
+        'ALTER TABLE work_orders ADD COLUMN statusHistory TEXT DEFAULT "{}"',
+      );
     }
   }
 
@@ -156,12 +164,21 @@ class DbService {
 
   Future<void> insertClient(Client client) async {
     final dbClient = await db;
-    await dbClient.insert('clients', client.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await dbClient.insert(
+      'clients',
+      client.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> updateClient(Client client) async {
     final dbClient = await db;
-    await dbClient.update('clients', client.toMap(), where: 'id = ?', whereArgs: [client.id]);
+    await dbClient.update(
+      'clients',
+      client.toMap(),
+      where: 'id = ?',
+      whereArgs: [client.id],
+    );
   }
 
   Future<void> deleteClient(String id) async {
@@ -178,12 +195,21 @@ class DbService {
 
   Future<void> insertTechnician(Technician technician) async {
     final dbClient = await db;
-    await dbClient.insert('technicians', technician.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await dbClient.insert(
+      'technicians',
+      technician.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> updateTechnician(Technician technician) async {
     final dbClient = await db;
-    await dbClient.update('technicians', technician.toMap(), where: 'id = ?', whereArgs: [technician.id]);
+    await dbClient.update(
+      'technicians',
+      technician.toMap(),
+      where: 'id = ?',
+      whereArgs: [technician.id],
+    );
   }
 
   Future<void> deleteTechnician(String id) async {
@@ -197,21 +223,34 @@ class DbService {
     final maps = await dbClient.query('equipments');
     return maps.map((m) => Equipment.fromMap(m)).toList();
   }
-  
+
   Future<List<Equipment>> getEquipmentsByClient(String clientId) async {
     final dbClient = await db;
-    final maps = await dbClient.query('equipments', where: 'clientId = ?', whereArgs: [clientId]);
+    final maps = await dbClient.query(
+      'equipments',
+      where: 'clientId = ?',
+      whereArgs: [clientId],
+    );
     return maps.map((m) => Equipment.fromMap(m)).toList();
   }
 
   Future<void> insertEquipment(Equipment eq) async {
     final dbClient = await db;
-    await dbClient.insert('equipments', eq.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await dbClient.insert(
+      'equipments',
+      eq.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> updateEquipment(Equipment eq) async {
     final dbClient = await db;
-    await dbClient.update('equipments', eq.toMap(), where: 'id = ?', whereArgs: [eq.id]);
+    await dbClient.update(
+      'equipments',
+      eq.toMap(),
+      where: 'id = ?',
+      whereArgs: [eq.id],
+    );
   }
 
   Future<void> deleteEquipment(String id) async {
@@ -228,12 +267,21 @@ class DbService {
 
   Future<void> insertWorkOrder(WorkOrder os) async {
     final dbClient = await db;
-    await dbClient.insert('work_orders', os.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await dbClient.insert(
+      'work_orders',
+      os.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> updateWorkOrder(WorkOrder os) async {
     final dbClient = await db;
-    await dbClient.update('work_orders', os.toMap(), where: 'id = ?', whereArgs: [os.id]);
+    await dbClient.update(
+      'work_orders',
+      os.toMap(),
+      where: 'id = ?',
+      whereArgs: [os.id],
+    );
   }
 
   Future<void> deleteWorkOrder(String id) async {
@@ -244,15 +292,23 @@ class DbService {
   // --- Work Order Items ---
   Future<List<WorkOrderItem>> getWorkOrderItems(String workOrderId) async {
     final dbClient = await db;
-    final maps = await dbClient.query('work_order_items', where: 'workOrderId = ?', whereArgs: [workOrderId]);
+    final maps = await dbClient.query(
+      'work_order_items',
+      where: 'workOrderId = ?',
+      whereArgs: [workOrderId],
+    );
     return maps.map((m) => WorkOrderItem.fromMap(m)).toList();
   }
 
   Future<void> insertWorkOrderItem(WorkOrderItem item) async {
     final dbClient = await db;
-    await dbClient.insert('work_order_items', item.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await dbClient.insert(
+      'work_order_items',
+      item.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
-  
+
   Future<void> deleteWorkOrderItem(String id) async {
     final dbClient = await db;
     await dbClient.delete('work_order_items', where: 'id = ?', whereArgs: [id]);
@@ -261,17 +317,29 @@ class DbService {
   // --- Work Order Images ---
   Future<List<WorkOrderImage>> getWorkOrderImages(String workOrderId) async {
     final dbClient = await db;
-    final maps = await dbClient.query('work_order_images', where: 'workOrderId = ?', whereArgs: [workOrderId]);
+    final maps = await dbClient.query(
+      'work_order_images',
+      where: 'workOrderId = ?',
+      whereArgs: [workOrderId],
+    );
     return maps.map((m) => WorkOrderImage.fromMap(m)).toList();
   }
 
   Future<void> insertWorkOrderImage(WorkOrderImage img) async {
     final dbClient = await db;
-    await dbClient.insert('work_order_images', img.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await dbClient.insert(
+      'work_order_images',
+      img.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
-  
+
   Future<void> deleteWorkOrderImage(String id) async {
     final dbClient = await db;
-    await dbClient.delete('work_order_images', where: 'id = ?', whereArgs: [id]);
+    await dbClient.delete(
+      'work_order_images',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }

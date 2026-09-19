@@ -1,10 +1,15 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/app_provider.dart';
 import '../models/technician.dart';
+
 import 'package:uuid/uuid.dart';
+
 import 'technician_detail_screen.dart';
+
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class TechniciansScreen extends StatefulWidget {
@@ -21,14 +26,27 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFAFAFA),
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Técnicos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
+            const Text(
+              'Técnicos',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Colors.black87,
+              ),
+            ),
             Consumer<AppProvider>(
               builder: (context, provider, _) {
-                final ativos = provider.technicians.where((t) => t.isActive == 1).length;
+                final ativos = provider.technicians
+                    .where((t) => t.isActive == 1)
+                    .length;
                 return Text(
                   '$ativos técnicos ativos',
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
@@ -37,27 +55,17 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
             ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.red.shade50,
-              foregroundColor: Colors.red.shade700,
-              radius: 20,
-              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          )
-        ],
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
           var filtered = provider.technicians.where((t) {
-            final matchesSearch = t.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                                  t.matricula.contains(_searchQuery);
+            final matchesSearch =
+                t.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                t.matricula.contains(_searchQuery);
             bool matchesFilter = true;
             if (_filterStatus == 'Ativos') matchesFilter = t.isActive == 1;
             if (_filterStatus == 'Inativos') matchesFilter = t.isActive == 0;
-            
+
             return matchesSearch && matchesFilter;
           }).toList();
 
@@ -71,7 +79,10 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   onChanged: (val) => setState(() => _searchQuery = val),
                 ),
@@ -87,17 +98,26 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
                           label: Text(status),
                           selected: isSelected,
                           onSelected: (selected) {
-                            if (selected) setState(() => _filterStatus = status);
+                            if (selected)
+                              setState(() => _filterStatus = status);
                           },
                           selectedColor: Colors.red.shade100,
                           labelStyle: TextStyle(
-                            color: isSelected ? Colors.red.shade900 : Colors.black87,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            color: isSelected
+                                ? Colors.red.shade900
+                                : Colors.black87,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                           backgroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
-                            side: BorderSide(color: isSelected ? Colors.red.shade300 : Colors.grey.shade300),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? Colors.red.shade300
+                                  : Colors.grey.shade300,
+                            ),
                           ),
                         ),
                       );
@@ -112,11 +132,18 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade700,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     icon: const Icon(Icons.add),
                     label: const Text('Cadastrar técnico'),
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TechnicianFormScreen())),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TechnicianFormScreen(),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -127,7 +154,13 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
                     itemBuilder: (context, index) {
                       final tech = filtered[index];
                       return GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TechnicianDetailScreen(technician: tech))),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                TechnicianDetailScreen(technician: tech),
+                          ),
+                        ),
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -139,29 +172,53 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
                               CircleAvatar(
                                 backgroundColor: Colors.red.shade50,
                                 foregroundColor: Colors.red.shade700,
-                                child: Text(tech.name.substring(0, 2).toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                child: Text(
+                                  tech.name.substring(0, 2).toUpperCase(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(tech.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    Text(
+                                      tech.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
-                                    Text(tech.specialty, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                                    Text(
+                                      tech.specialty,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 14,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: tech.isActive == 1 ? Colors.green.shade50 : Colors.grey.shade200,
+                                  color: tech.isActive == 1
+                                      ? Colors.green.shade50
+                                      : Colors.grey.shade200,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   tech.isActive == 1 ? 'Ativo' : 'Inativo',
                                   style: TextStyle(
-                                    color: tech.isActive == 1 ? Colors.green.shade700 : Colors.grey.shade700,
+                                    color: tech.isActive == 1
+                                        ? Colors.green.shade700
+                                        : Colors.grey.shade700,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -202,13 +259,13 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
     _name = widget.technician?.name ?? '';
     _contact = widget.technician?.contact ?? '';
     _specialty = widget.technician?.specialty ?? '';
-    
+
     if (widget.technician != null && widget.technician!.matricula.isNotEmpty) {
       _matricula = widget.technician!.matricula;
     } else {
       _matricula = Random().nextInt(999999).toString().padLeft(6, '0');
     }
-    
+
     _senha = widget.technician?.senha ?? '';
     _isActive = widget.technician?.isActive ?? 1;
   }
@@ -217,26 +274,31 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context, listen: false);
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFAFAFA),
+        elevation: 0,
+        scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.technician == null ? 'Cadastrar técnico' : 'Editar técnico', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 22)),
-            const Text('Dados do profissional', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            Text(
+              widget.technician == null
+                  ? 'Cadastrar técnico'
+                  : 'Editar técnico',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                fontSize: 22,
+              ),
+            ),
+            const Text(
+              'Dados do profissional',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.red.shade50,
-              foregroundColor: Colors.red.shade700,
-              radius: 20,
-              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          )
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -245,27 +307,52 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Identificação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Identificação',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               _buildField('Nome', _name, (val) => _name = val, true),
-              _buildField('Especialidade', _specialty, (val) => _specialty = val, true),
               _buildField(
-                'Contato', 
-                _contact, 
-                (val) => _contact = val, 
+                'Especialidade',
+                _specialty,
+                (val) => _specialty = val,
+                true,
+              ),
+              _buildField(
+                'Contato',
+                _contact,
+                (val) => _contact = val,
                 true,
                 keyboardType: TextInputType.phone,
-                inputFormatters: [MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')})],
+                inputFormatters: [
+                  MaskTextInputFormatter(
+                    mask: '(##) #####-####',
+                    filter: {"#": RegExp(r'[0-9]')},
+                  ),
+                ],
               ),
-              
+
               const SizedBox(height: 24),
-              const Text('Acesso ao sistema', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Acesso ao sistema',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
-              _buildField('Matrícula', _matricula, (val) => _matricula = val, true, readOnly: true),
+              _buildField(
+                'Matrícula',
+                _matricula,
+                (val) => _matricula = val,
+                true,
+                readOnly: true,
+              ),
               _buildField('Senha', _senha, (val) => _senha = val, true),
 
               const SizedBox(height: 24),
-              const Text('Status', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Status',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
@@ -295,7 +382,9 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red.shade700,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
@@ -308,13 +397,18 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
                     matricula: _matricula,
                     senha: _senha,
                     isActive: _isActive,
-                    createdAt: widget.technician?.createdAt ?? DateTime.now().toIso8601String(),
+                    createdAt:
+                        widget.technician?.createdAt ??
+                        DateTime.now().toIso8601String(),
                   );
                   provider.saveTechnician(newTech);
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Salvar técnico', style: TextStyle(fontSize: 16)),
+              child: const Text(
+                'Salvar técnico',
+                style: TextStyle(fontSize: 16),
+              ),
             ),
           ),
         ),
@@ -322,7 +416,15 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
     );
   }
 
-  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired, {bool readOnly = false, dynamic inputFormatters, TextInputType? keyboardType}) {
+  Widget _buildField(
+    String label,
+    String initialValue,
+    Function(String) onSaved,
+    bool isRequired, {
+    bool readOnly = false,
+    dynamic inputFormatters,
+    TextInputType? keyboardType,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -339,11 +441,19 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
             decoration: InputDecoration(
               filled: true,
               fillColor: readOnly ? Colors.grey.shade100 : Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
             ),
             onSaved: (val) => onSaved(val ?? ''),
-            validator: (val) => (isRequired && (val == null || val.isEmpty)) ? 'Obrigatório' : null,
+            validator: (val) => (isRequired && (val == null || val.isEmpty))
+                ? 'Obrigatório'
+                : null,
           ),
         ],
       ),

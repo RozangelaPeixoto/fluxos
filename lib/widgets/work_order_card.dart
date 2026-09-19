@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../models/work_order.dart';
 import '../providers/app_provider.dart';
 import '../screens/work_order_detail_screen.dart';
 import 'status_pill.dart';
+
 import 'package:provider/provider.dart';
 
 class WorkOrderCard extends StatelessWidget {
@@ -19,14 +21,24 @@ class WorkOrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context, listen: false);
-    
-    final client = provider.clients.firstWhere((c) => c.id == workOrder.clientId, orElse: () => throw Exception());
-    final eq = provider.equipments.firstWhere((e) => e.id == workOrder.equipmentId, orElse: () => throw Exception());
-    final techName = workOrder.technicianId != null ? provider.technicians.firstWhere((t) => t.id == workOrder.technicianId).name : 'Não atribuído';
+
+    final client = provider.clients.firstWhere(
+      (c) => c.id == workOrder.clientId,
+      orElse: () => throw Exception(),
+    );
+    final eq = provider.equipments.firstWhere(
+      (e) => e.id == workOrder.equipmentId,
+      orElse: () => throw Exception(),
+    );
+    final techName = workOrder.technicianId != null
+        ? provider.technicians
+              .firstWhere((t) => t.id == workOrder.technicianId)
+              .name
+        : 'Não atribuído';
 
     String deadlineStr = 'Sem prazo';
     bool isOverdue = false;
-    
+
     if (workOrder.deadline != null && workOrder.deadline!.isNotEmpty) {
       try {
         final dl = DateTime.parse(workOrder.deadline!);
@@ -45,7 +57,12 @@ class WorkOrderCard extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => WorkOrderDetailScreen(workOrder: workOrder))),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => WorkOrderDetailScreen(workOrder: workOrder),
+        ),
+      ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
@@ -60,7 +77,13 @@ class WorkOrderCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(workOrder.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(
+                  workOrder.code,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
                 Row(
                   children: [
                     if (criticalTag.isNotEmpty) ...[
@@ -75,15 +98,30 @@ class WorkOrderCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text(client.name, style: const TextStyle(color: Colors.black87, fontSize: 16)),
+            Text(
+              client.name,
+              style: const TextStyle(color: Colors.black87, fontSize: 16),
+            ),
             const SizedBox(height: 4),
-            Text(eq.type, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+            Text(
+              eq.type,
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
+            ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Técnico: $techName', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                Text('Prazo: $deadlineStr', style: TextStyle(color: isOverdue ? Colors.red.shade700 : Colors.grey, fontSize: 12)),
+                Text(
+                  'Técnico: $techName',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                Text(
+                  'Prazo: $deadlineStr',
+                  style: TextStyle(
+                    color: isOverdue ? Colors.red.shade700 : Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ],

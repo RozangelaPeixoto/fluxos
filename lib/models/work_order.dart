@@ -134,11 +134,7 @@ class WorkOrderImage {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'workOrderId': workOrderId,
-      'imagePath': imagePath,
-    };
+    return {'id': id, 'workOrderId': workOrderId, 'imagePath': imagePath};
   }
 
   factory WorkOrderImage.fromMap(Map<String, dynamic> map) {

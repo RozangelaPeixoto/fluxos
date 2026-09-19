@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/app_provider.dart';
 import '../models/work_order.dart';
 import '../widgets/work_order_card.dart';
@@ -8,6 +9,7 @@ import 'work_order_detail_screen.dart';
 import '../models/equipment.dart';
 import '../widgets/status_pill.dart';
 import '../widgets/work_order_card.dart';
+
 import 'package:intl/intl.dart';
 
 class WorkOrdersScreen extends StatefulWidget {
@@ -25,14 +27,30 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFAFAFA),
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Ordens de Serviço', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
+            const Text(
+              'Ordens de Serviço',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Colors.black87,
+              ),
+            ),
             Consumer<AppProvider>(
               builder: (context, provider, _) {
-                final activeCount = provider.workOrders.where((os) => os.status != 'Concluída' && os.status != 'Cancelada').length;
+                final activeCount = provider.workOrders
+                    .where(
+                      (os) =>
+                          os.status != 'Concluída' && os.status != 'Cancelada',
+                    )
+                    .length;
                 return Text(
                   '$activeCount ordens ativas',
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
@@ -41,35 +59,44 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
             ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.red.shade50,
-              foregroundColor: Colors.red.shade700,
-              radius: 20,
-              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          )
-        ],
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
           var filtered = provider.workOrders.where((os) {
-            bool matchesSearch = _searchQuery.isEmpty || 
-                os.code.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                (provider.clients.any((c) => c.id == os.clientId && c.name.toLowerCase().contains(_searchQuery.toLowerCase()))) ||
-                (provider.equipments.any((e) => e.id == os.equipmentId && e.type.toLowerCase().contains(_searchQuery.toLowerCase()))) ||
-                (provider.technicians.any((t) => t.id == os.technicianId && t.name.toLowerCase().contains(_searchQuery.toLowerCase())));
-                
-            bool matchesStatus = _selectedStatus == null || os.status == _selectedStatus;
-            bool matchesPriority = _selectedPriority == null || os.priority == _selectedPriority;
-            
+            bool matchesSearch =
+                _searchQuery.isEmpty ||
+                os.code.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                (provider.clients.any(
+                  (c) =>
+                      c.id == os.clientId &&
+                      c.name.toLowerCase().contains(_searchQuery.toLowerCase()),
+                )) ||
+                (provider.equipments.any(
+                  (e) =>
+                      e.id == os.equipmentId &&
+                      e.type.toLowerCase().contains(_searchQuery.toLowerCase()),
+                )) ||
+                (provider.technicians.any(
+                  (t) =>
+                      t.id == os.technicianId &&
+                      t.name.toLowerCase().contains(_searchQuery.toLowerCase()),
+                ));
+
+            bool matchesStatus =
+                _selectedStatus == null || os.status == _selectedStatus;
+            bool matchesPriority =
+                _selectedPriority == null || os.priority == _selectedPriority;
+
             return matchesSearch && matchesStatus && matchesPriority;
           }).toList();
 
           filtered.sort((a, b) {
-            const priorities = {'Urgente': 0, 'Alta': 1, 'Média': 2, 'Baixa': 3};
+            const priorities = {
+              'Urgente': 0,
+              'Alta': 1,
+              'Média': 2,
+              'Baixa': 3,
+            };
             int pA = priorities[a.priority] ?? 4;
             int pB = priorities[b.priority] ?? 4;
             return pA.compareTo(pB);
@@ -86,17 +113,44 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
                   ),
                   onChanged: (val) => setState(() => _searchQuery = val),
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(child: _buildDropdownFilter('Status', ['Aberta', 'Atribuída', 'Em atendimento', 'Aguardando peça', 'Concluída', 'Cancelada'], _selectedStatus, (val) => setState(() => _selectedStatus = val))),
+                    Expanded(
+                      child: _buildDropdownFilter(
+                        'Status',
+                        [
+                          'Aberta',
+                          'Atribuída',
+                          'Em atendimento',
+                          'Aguardando peça',
+                          'Concluída',
+                          'Cancelada',
+                        ],
+                        _selectedStatus,
+                        (val) => setState(() => _selectedStatus = val),
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildDropdownFilter('Prioridade', ['Baixa', 'Média', 'Alta', 'Urgente'], _selectedPriority, (val) => setState(() => _selectedPriority = val))),
+                    Expanded(
+                      child: _buildDropdownFilter(
+                        'Prioridade',
+                        ['Baixa', 'Média', 'Alta', 'Urgente'],
+                        _selectedPriority,
+                        (val) => setState(() => _selectedPriority = val),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -107,11 +161,21 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade700,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     icon: const Icon(Icons.add),
-                    label: const Text('Nova ordem de serviço', style: TextStyle(fontSize: 16)),
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkOrderFormScreen())),
+                    label: const Text(
+                      'Nova ordem de serviço',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const WorkOrderFormScreen(),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -132,7 +196,12 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
     );
   }
 
-  Widget _buildDropdownFilter(String hint, List<String> items, String? value, Function(String?) onChanged) {
+  Widget _buildDropdownFilter(
+    String hint,
+    List<String> items,
+    String? value,
+    Function(String?) onChanged,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -143,12 +212,23 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
-          hint: Text(hint, style: const TextStyle(color: Colors.black54, fontSize: 14)),
+          hint: Text(
+            hint,
+            style: const TextStyle(color: Colors.black54, fontSize: 14),
+          ),
           value: value,
           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
           items: [
-            DropdownMenuItem<String>(value: null, child: Text('$hint: Todos', style: const TextStyle(fontSize: 14))),
-            ...items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e, style: const TextStyle(fontSize: 14)))),
+            DropdownMenuItem<String>(
+              value: null,
+              child: Text('$hint: Todos', style: const TextStyle(fontSize: 14)),
+            ),
+            ...items.map(
+              (e) => DropdownMenuItem<String>(
+                value: e,
+                child: Text(e, style: const TextStyle(fontSize: 14)),
+              ),
+            ),
           ],
           onChanged: onChanged,
         ),

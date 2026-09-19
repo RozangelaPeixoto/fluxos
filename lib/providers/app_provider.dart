@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../models/client.dart';
 import '../models/technician.dart';
 import '../models/equipment.dart';
 import '../models/work_order.dart';
 import '../services/db_service.dart';
+
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 
@@ -39,21 +41,71 @@ class AppProvider with ChangeNotifier {
 
   // --- Mock Data ---
   Future<void> _generateMockData() async {
-    var c1 = Client(id: _uuid.v4(), name: 'Clínica Vida', document: '11.111.111/0001-11', phone: '11999999999', email: 'contato@vida.com', address: 'Rua A, 123', createdAt: DateTime.now().toIso8601String());
-    var c2 = Client(id: _uuid.v4(), name: 'Mercado Central', document: '22.222.222/0001-22', phone: '11888888888', email: 'contato@mercado.com', address: 'Rua B, 456', createdAt: DateTime.now().toIso8601String());
+    var c1 = Client(
+      id: _uuid.v4(),
+      name: 'Clínica Vida',
+      document: '11.111.111/0001-11',
+      phone: '11999999999',
+      email: 'contato@vida.com',
+      address: 'Rua A, 123',
+      createdAt: DateTime.now().toIso8601String(),
+    );
+    var c2 = Client(
+      id: _uuid.v4(),
+      name: 'Mercado Central',
+      document: '22.222.222/0001-22',
+      phone: '11888888888',
+      email: 'contato@mercado.com',
+      address: 'Rua B, 456',
+      createdAt: DateTime.now().toIso8601String(),
+    );
     await _db.insertClient(c1);
     await _db.insertClient(c2);
 
-    var t1 = Technician(id: _uuid.v4(), name: 'Mariana', contact: '11777777777', specialty: 'Refrigeração', matricula: '12345', senha: '123', createdAt: DateTime.now().toIso8601String());
-    var t2 = Technician(id: _uuid.v4(), name: 'Carlos', contact: '11666666666', specialty: 'Eletrônica', matricula: '54321', senha: '123', createdAt: DateTime.now().toIso8601String());
+    var t1 = Technician(
+      id: _uuid.v4(),
+      name: 'Mariana',
+      contact: '11777777777',
+      specialty: 'Refrigeração',
+      matricula: '12345',
+      senha: '123',
+      createdAt: DateTime.now().toIso8601String(),
+    );
+    var t2 = Technician(
+      id: _uuid.v4(),
+      name: 'Carlos',
+      contact: '11666666666',
+      specialty: 'Eletrônica',
+      matricula: '54321',
+      senha: '123',
+      createdAt: DateTime.now().toIso8601String(),
+    );
     await _db.insertTechnician(t1);
     await _db.insertTechnician(t2);
 
-    var e1 = Equipment(id: _uuid.v4(), clientId: c1.id, type: 'Autoclave', brand: 'Stermax', model: 'A100', serialNumber: 'SN123', patrimony: 'PAT001', observations: '');
-    var e2 = Equipment(id: _uuid.v4(), clientId: c2.id, type: 'Câmara Fria', brand: 'FrioBom', model: 'C200', serialNumber: 'SN456', patrimony: 'PAT002', observations: '');
+    var e1 = Equipment(
+      id: _uuid.v4(),
+      clientId: c1.id,
+      type: 'Autoclave',
+      brand: 'Stermax',
+      model: 'A100',
+      serialNumber: 'SN123',
+      patrimony: 'PAT001',
+      observations: '',
+    );
+    var e2 = Equipment(
+      id: _uuid.v4(),
+      clientId: c2.id,
+      type: 'Câmara Fria',
+      brand: 'FrioBom',
+      model: 'C200',
+      serialNumber: 'SN456',
+      patrimony: 'PAT002',
+      observations: '',
+    );
     await _db.insertEquipment(e1);
     await _db.insertEquipment(e2);
-    
+
     var formatter = DateFormat('yyyy-MM-dd HH:mm');
     var now = DateTime.now();
 
@@ -111,7 +163,9 @@ class AppProvider with ChangeNotifier {
   Future<bool> login(String matricula, String senha) async {
     await loadData();
     try {
-      var user = technicians.firstWhere((t) => t.matricula == matricula && t.senha == senha && t.isActive == 1);
+      var user = technicians.firstWhere(
+        (t) => t.matricula == matricula && t.senha == senha && t.isActive == 1,
+      );
       _loggedUser = user;
       notifyListeners();
       return true;
