@@ -221,7 +221,7 @@ class WorkOrderDetailScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Serviços', style: TextStyle(color: Colors.black54, fontSize: 14)),
-              Text(formatCurrency.format(os.laborCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(formatCurrency.format(os.laborCost), style: const TextStyle(fontSize: 14, color: Colors.black54)),
             ],
           ),
           const SizedBox(height: 12),
@@ -229,7 +229,7 @@ class WorkOrderDetailScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Peças', style: TextStyle(color: Colors.black54, fontSize: 14)),
-              Text(formatCurrency.format(os.partsCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(formatCurrency.format(os.partsCost), style: const TextStyle(fontSize: 14, color: Colors.black54)),
             ],
           ),
           const SizedBox(height: 12),
@@ -237,7 +237,7 @@ class WorkOrderDetailScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Desconto', style: TextStyle(color: Colors.black54, fontSize: 14)),
-              Text('- ${formatCurrency.format(os.discount)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red)),
+              Text('- ${formatCurrency.format(os.discount)}', style: const TextStyle(fontSize: 14, color: Colors.black54)),
             ],
           ),
           const SizedBox(height: 16),
@@ -246,8 +246,8 @@ class WorkOrderDetailScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
-              Text(formatCurrency.format(os.totalCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
+              const Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+              Text(formatCurrency.format(os.totalCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
             ],
           ),
         ],
@@ -367,9 +367,9 @@ class WorkOrderDetailScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(statusStep, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: (isReached || isCurrent) ? Colors.black87 : Colors.grey)),
+                        Text(statusStep, style: TextStyle(fontSize: 14, color: (isReached || isCurrent) ? Colors.black87 : Colors.black54)),
                         if (isReached && dateStr.isNotEmpty)
-                          Text(dateStr, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                          Text(dateStr, style: const TextStyle(color: Colors.black54, fontSize: 13)),
                       ],
                     )
                   ],
