@@ -61,20 +61,6 @@ class TechnicianDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
                   child: Row(
                     children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          tech.name.substring(0, 2).toUpperCase(),
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.blue.shade700),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,12 +126,57 @@ class TechnicianDetailScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Ordens recentes', style: TextStyle(fontSize: 18, color: Colors.black87)),
+                      const Text('Próximos Atendimentos', style: TextStyle(fontSize: 18, color: Colors.black87, fontWeight: FontWeight.bold)),
                       Text('Ver tudo', style: TextStyle(fontSize: 14, color: Colors.blue.shade700, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  ...techOs.take(3).map((os) => WorkOrderCard(workOrder: os)),
+                  ...techOs.take(3).map((os) {
+                    final eq = provider.equipments.where((e) => e.id == os.equipmentId).firstOrNull;
+                    final eqName = eq != null ? eq.type : 'Equipamento';
+                    
+                    String osDate = '';
+                    String osTime = '';
+                    try {
+                      final dt = DateTime.parse(os.openDate);
+                      osDate = DateFormat('dd/MM/yy').format(dt);
+                      osTime = DateFormat('HH:mm').format(dt);
+                    } catch (_) {}
+
+                    return GestureDetector(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => WorkOrderDetailScreen(workOrder: os))),
+                      child: Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Column(
+                              children: [
+                                Text(osDate, style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold, fontSize: 12)),
+                                const SizedBox(height: 4),
+                                Text(osTime, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                              ]
+                            ),
+                            Container(width: 1, height: 40, color: Colors.grey.shade300, margin: const EdgeInsets.symmetric(horizontal: 16)),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
+                                  const SizedBox(height: 4),
+                                  Text(eqName, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                                ]
+                              ),
+                            ),
+                            StatusPill(status: os.priority, isPriority: true),
+                          ]
+                        ),
+                      ),
+                    );
+                  }),
                 ],
                 
                 const SizedBox(height: 24),

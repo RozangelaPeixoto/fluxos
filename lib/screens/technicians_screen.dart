@@ -5,6 +5,7 @@ import '../providers/app_provider.dart';
 import '../models/technician.dart';
 import 'package:uuid/uuid.dart';
 import 'technician_detail_screen.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class TechniciansScreen extends StatefulWidget {
   const TechniciansScreen({super.key});
@@ -248,7 +249,14 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
               const SizedBox(height: 16),
               _buildField('Nome', _name, (val) => _name = val, true),
               _buildField('Especialidade', _specialty, (val) => _specialty = val, true),
-              _buildField('Contato', _contact, (val) => _contact = val, true),
+              _buildField(
+                'Contato', 
+                _contact, 
+                (val) => _contact = val, 
+                true,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')})],
+              ),
               
               const SizedBox(height: 24),
               const Text('Acesso ao sistema', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -314,7 +322,7 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
     );
   }
 
-  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired, {bool readOnly = false}) {
+  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired, {bool readOnly = false, dynamic inputFormatters, TextInputType? keyboardType}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -325,6 +333,8 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
           TextFormField(
             initialValue: initialValue,
             readOnly: readOnly,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
             style: TextStyle(color: readOnly ? Colors.black54 : Colors.black87),
             decoration: InputDecoration(
               filled: true,
