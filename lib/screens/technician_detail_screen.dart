@@ -6,6 +6,7 @@ import '../models/technician.dart';
 import 'technicians_screen.dart';
 import '../widgets/status_pill.dart';
 import '../widgets/work_order_card.dart';
+import 'work_order_detail_screen.dart';
 
 class TechnicianDetailScreen extends StatelessWidget {
   final Technician technician;
