@@ -60,17 +60,6 @@ class WorkOrderDetailScreen extends StatelessWidget {
             elevation: 0,
             scrolledUnderElevation: 0,
             title: Text(os.code, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 22)),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: CircleAvatar(
-                  backgroundColor: Colors.red.shade50,
-                  foregroundColor: Colors.red.shade700,
-                  radius: 20,
-                  child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                ),
-              )
-            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -226,29 +215,29 @@ class WorkOrderDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('RESUMO FINANCEIRO', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5D7A9D), fontSize: 13)),
+          const Text('Resumo financeiro', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54, fontSize: 12)),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Serviços', style: TextStyle(color: Colors.black54, fontSize: 16)),
-              Text(formatCurrency.format(os.laborCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text('Serviços', style: TextStyle(color: Colors.black54, fontSize: 14)),
+              Text(formatCurrency.format(os.laborCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Peças', style: TextStyle(color: Colors.black54, fontSize: 16)),
-              Text(formatCurrency.format(os.partsCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text('Peças', style: TextStyle(color: Colors.black54, fontSize: 14)),
+              Text(formatCurrency.format(os.partsCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Desconto', style: TextStyle(color: Colors.black54, fontSize: 16)),
-              Text('- ${formatCurrency.format(os.discount)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
+              const Text('Desconto', style: TextStyle(color: Colors.black54, fontSize: 14)),
+              Text('- ${formatCurrency.format(os.discount)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red)),
             ],
           ),
           const SizedBox(height: 16),
@@ -257,8 +246,8 @@ class WorkOrderDetailScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
-              Text(formatCurrency.format(os.totalCost), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.blue.shade700)),
+              const Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+              Text(formatCurrency.format(os.totalCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
             ],
           ),
         ],
@@ -276,30 +265,39 @@ class WorkOrderDetailScreen extends StatelessWidget {
 
     final formatDate = DateFormat("dd/MM/yy HH:mm");
     
-    List<String> flow = ['Aberta', 'Atribuída', 'Em atendimento'];
-    if (history.containsKey('Aguardando peça') || os.status == 'Aguardando peça') {
-      flow.add('Aguardando peça');
-    }
-    flow.add('Concluída');
-
+    List<String> flow = [];
     bool isCanceled = os.status == 'Cancelada';
+
     if (isCanceled) {
+      flow.add('Aberta');
+      if (history.containsKey('Atribuída')) flow.add('Atribuída');
+      if (history.containsKey('Em atendimento')) flow.add('Em atendimento');
+      if (history.containsKey('Aguardando peça')) flow.add('Aguardando peça');
+      if (history.containsKey('Concluída')) flow.add('Concluída');
       flow.add('Cancelada');
+    } else {
+      flow.add('Aberta');
+      flow.add('Atribuída');
+      flow.add('Em atendimento');
+      if (history.containsKey('Aguardando peça') || os.status == 'Aguardando peça') {
+        flow.add('Aguardando peça');
+      }
+      flow.add('Concluída');
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Histórico da OS', style: TextStyle(fontSize: 18, color: Colors.black87)),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Column(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Histórico da OS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54, fontSize: 12)),
+          const SizedBox(height: 16),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: flow.map((statusStep) {
               bool isReached = history.containsKey(statusStep);
@@ -322,10 +320,16 @@ class WorkOrderDetailScreen extends StatelessWidget {
               Color bgColor;
 
               if (isCurrent && !isCancelStep) {
-                icon = Icons.arrow_forward;
-                iconColor = Colors.white;
-                bgColor = Colors.blue.shade600;
                 isReached = true;
+                if (statusStep == 'Concluída') {
+                  icon = Icons.check;
+                  iconColor = Colors.white;
+                  bgColor = Colors.green.shade600;
+                } else {
+                  icon = Icons.arrow_forward;
+                  iconColor = Colors.white;
+                  bgColor = Colors.blue.shade600;
+                }
               } else if (isCancelStep && isReached) {
                 icon = Icons.close;
                 iconColor = Colors.white;
@@ -341,7 +345,7 @@ class WorkOrderDetailScreen extends StatelessWidget {
               }
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 24.0),
+                padding: const EdgeInsets.only(bottom: 16.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -369,8 +373,8 @@ class WorkOrderDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

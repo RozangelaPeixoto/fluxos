@@ -261,17 +261,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
             const Text('Preencha os dados do atendimento', style: TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.red.shade50,
-              foregroundColor: Colors.red.shade700,
-              radius: 20,
-              child: const Text('MP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          )
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
