@@ -1,8 +1,10 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../models/technician.dart';
 import 'package:uuid/uuid.dart';
+import 'technician_detail_screen.dart';
 
 class TechniciansScreen extends StatefulWidget {
   const TechniciansScreen({super.key});
@@ -13,6 +15,7 @@ class TechniciansScreen extends StatefulWidget {
 
 class _TechniciansScreenState extends State<TechniciansScreen> {
   String _searchQuery = '';
+  String _filterStatus = 'Ativos';
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +26,13 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
           children: [
             const Text('Técnicos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
             Consumer<AppProvider>(
-              builder: (context, provider, _) => Text(
-                '${provider.technicians.length} técnicos cadastrados',
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
+              builder: (context, provider, _) {
+                final ativos = provider.technicians.where((t) => t.isActive == 1).length;
+                return Text(
+                  '$ativos técnicos ativos',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                );
+              },
             ),
           ],
         ),
@@ -45,8 +51,13 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
           var filtered = provider.technicians.where((t) {
-            return t.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                   t.matricula.contains(_searchQuery);
+            final matchesSearch = t.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                                  t.matricula.contains(_searchQuery);
+            bool matchesFilter = true;
+            if (_filterStatus == 'Ativos') matchesFilter = t.isActive == 1;
+            if (_filterStatus == 'Inativos') matchesFilter = t.isActive == 0;
+            
+            return matchesSearch && matchesFilter;
           }).toList();
 
           return Padding(
@@ -62,6 +73,35 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
                   onChanged: (val) => setState(() => _searchQuery = val),
+                ),
+                const SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: ['Ativos', 'Inativos', 'Todos'].map((status) {
+                      final isSelected = _filterStatus == status;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ChoiceChip(
+                          label: Text(status),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) setState(() => _filterStatus = status);
+                          },
+                          selectedColor: Colors.red.shade100,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.red.shade900 : Colors.black87,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(color: isSelected ? Colors.red.shade300 : Colors.grey.shade300),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
@@ -86,7 +126,7 @@ class _TechniciansScreenState extends State<TechniciansScreen> {
                     itemBuilder: (context, index) {
                       final tech = filtered[index];
                       return GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TechnicianFormScreen(technician: tech))),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TechnicianDetailScreen(technician: tech))),
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -161,7 +201,13 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
     _name = widget.technician?.name ?? '';
     _contact = widget.technician?.contact ?? '';
     _specialty = widget.technician?.specialty ?? '';
-    _matricula = widget.technician?.matricula ?? '';
+    
+    if (widget.technician != null && widget.technician!.matricula.isNotEmpty) {
+      _matricula = widget.technician!.matricula;
+    } else {
+      _matricula = Random().nextInt(999999).toString().padLeft(6, '0');
+    }
+    
     _senha = widget.technician?.senha ?? '';
     _isActive = widget.technician?.isActive ?? 1;
   }
@@ -202,26 +248,30 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
               const SizedBox(height: 16),
               _buildField('Nome', _name, (val) => _name = val, true),
               _buildField('Especialidade', _specialty, (val) => _specialty = val, true),
-              _buildField('Contato', _contact, (val) => _contact = val, false),
+              _buildField('Contato', _contact, (val) => _contact = val, true),
               
               const SizedBox(height: 24),
               const Text('Acesso ao sistema', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              _buildField('Matrícula', _matricula, (val) => _matricula = val, true),
+              _buildField('Matrícula', _matricula, (val) => _matricula = val, true, readOnly: true),
               _buildField('Senha', _senha, (val) => _senha = val, true),
 
               const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: SwitchListTile(
-                  title: const Text('Status (Ativo)'),
-                  value: _isActive == 1,
-                  activeColor: Colors.red.shade700,
-                  onChanged: (val) => setState(() => _isActive = val ? 1 : 0),
+              const Text('Status', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<int>(
+                  segments: const [
+                    ButtonSegment(value: 1, label: Text('Ativo')),
+                    ButtonSegment(value: 0, label: Text('Inativo')),
+                  ],
+                  selected: {_isActive},
+                  onSelectionChanged: (Set<int> newSelection) {
+                    setState(() {
+                      _isActive = newSelection.first;
+                    });
+                  },
                 ),
               ),
             ],
@@ -250,6 +300,7 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
                     matricula: _matricula,
                     senha: _senha,
                     isActive: _isActive,
+                    createdAt: widget.technician?.createdAt ?? DateTime.now().toIso8601String(),
                   );
                   provider.saveTechnician(newTech);
                   Navigator.pop(context);
@@ -263,7 +314,7 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
     );
   }
 
-  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired) {
+  Widget _buildField(String label, String initialValue, Function(String) onSaved, bool isRequired, {bool readOnly = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -273,9 +324,11 @@ class _TechnicianFormScreenState extends State<TechnicianFormScreen> {
           const SizedBox(height: 8),
           TextFormField(
             initialValue: initialValue,
+            readOnly: readOnly,
+            style: TextStyle(color: readOnly ? Colors.black54 : Colors.black87),
             decoration: InputDecoration(
               filled: true,
-              fillColor: Colors.white,
+              fillColor: readOnly ? Colors.grey.shade100 : Colors.white,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
             ),

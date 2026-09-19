@@ -6,6 +6,7 @@ class Technician {
   String matricula;
   String senha;
   int isActive; 
+  String createdAt;
 
   Technician({
     required this.id,
@@ -15,6 +16,7 @@ class Technician {
     required this.matricula,
     required this.senha,
     this.isActive = 1,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +28,7 @@ class Technician {
       'matricula': matricula,
       'senha': senha,
       'isActive': isActive,
+      'createdAt': createdAt,
     };
   }
 
@@ -37,7 +40,8 @@ class Technician {
       specialty: map['specialty'],
       matricula: map['matricula'] ?? '',
       senha: map['senha'] ?? '',
-      isActive: map['isActive'],
+      isActive: map['isActive'] ?? 1,
+      createdAt: map['createdAt'] ?? DateTime.now().toIso8601String(),
     );
   }
 }

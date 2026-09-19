@@ -33,7 +33,7 @@ class DbService {
     return await databaseFactory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: 4,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
       ),
@@ -47,6 +47,9 @@ class DbService {
     }
     if (oldVersion < 3) {
       await db.execute('ALTER TABLE clients ADD COLUMN createdAt TEXT');
+    }
+    if (oldVersion < 4) {
+      await db.execute('ALTER TABLE technicians ADD COLUMN createdAt TEXT');
     }
   }
 
@@ -69,9 +72,10 @@ class DbService {
         name TEXT,
         contact TEXT,
         specialty TEXT,
+        isActive INTEGER,
         matricula TEXT,
         senha TEXT,
-        isActive INTEGER
+        createdAt TEXT
       )
     ''');
 

@@ -44,8 +44,8 @@ class AppProvider with ChangeNotifier {
     await _db.insertClient(c1);
     await _db.insertClient(c2);
 
-    var t1 = Technician(id: _uuid.v4(), name: 'Mariana', contact: '11777777777', specialty: 'Refrigeração', matricula: '12345', senha: '123');
-    var t2 = Technician(id: _uuid.v4(), name: 'Carlos', contact: '11666666666', specialty: 'Eletrônica', matricula: '54321', senha: '123');
+    var t1 = Technician(id: _uuid.v4(), name: 'Mariana', contact: '11777777777', specialty: 'Refrigeração', matricula: '12345', senha: '123', createdAt: DateTime.now().toIso8601String());
+    var t2 = Technician(id: _uuid.v4(), name: 'Carlos', contact: '11666666666', specialty: 'Eletrônica', matricula: '54321', senha: '123', createdAt: DateTime.now().toIso8601String());
     await _db.insertTechnician(t1);
     await _db.insertTechnician(t2);
 
