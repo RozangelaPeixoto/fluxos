@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
 import '../providers/app_provider.dart';
 import 'clients_screen.dart';
 import 'equipments_screen.dart';
@@ -57,31 +56,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         selectedItemColor: Colors.red.shade700,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view_outlined),
-            activeIcon: Icon(Icons.grid_view),
-            label: 'Início',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment),
-            label: 'Ordens',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            activeIcon: Icon(Icons.people),
-            label: 'Clientes',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business_center_outlined),
-            activeIcon: Icon(Icons.business_center),
-            label: 'Equipamentos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.engineering_outlined),
-            activeIcon: Icon(Icons.engineering),
-            label: 'Técnicos',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), activeIcon: Icon(Icons.grid_view), label: 'Início'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), activeIcon: Icon(Icons.assignment), label: 'Ordens'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Clientes'),
+          BottomNavigationBarItem(icon: Icon(Icons.business_center_outlined), activeIcon: Icon(Icons.business_center), label: 'Equipamentos'),
+          BottomNavigationBarItem(icon: Icon(Icons.engineering_outlined), activeIcon: Icon(Icons.engineering), label: 'Técnicos'),
         ],
       ),
     );
@@ -94,50 +73,22 @@ class DashboardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFAFAFA),
-        elevation: 0,
-        scrolledUnderElevation: 0,
         title: Consumer<AppProvider>(
           builder: (context, provider, _) {
             String name = provider.loggedUser?.name ?? 'Usuário';
-            String date = DateFormat(
-              "EEEE, dd 'de' MMMM",
-              'pt_BR',
-            ).format(DateTime.now());
+            String date = DateFormat("EEEE, dd 'de' MMMM", 'pt_BR').format(DateTime.now());
             date = date[0].toUpperCase() + date.substring(1);
-
+            
             return Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade700,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.auto_awesome,
-                    size: 28,
-                    color: Colors.white,
-                  ),
-                ),
+                Icon(Icons.ac_unit, color: Colors.blue.shade700, size: 40),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Olá, $name',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 22,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    Text(
-                      date,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
+                    Text('Olá, $name', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
+                    Text(date, style: const TextStyle(fontSize: 14, color: Colors.grey)),
                   ],
                 ),
               ],
@@ -152,60 +103,39 @@ class DashboardContent extends StatelessWidget {
           }
 
           int totalOS = provider.workOrders.length;
-          int open = provider.workOrders
-              .where((o) => o.status == 'Aberta')
-              .length;
-          int inProgress = provider.workOrders
-              .where((o) => o.status == 'Em atendimento')
-              .length;
-          int waiting = provider.workOrders
-              .where((o) => o.status == 'Aguardando peça')
-              .length;
-          int completed = provider.workOrders
-              .where((o) => o.status == 'Concluída')
-              .length;
-
+          int open = provider.workOrders.where((o) => o.status == 'Aberta').length;
+          int inProgress = provider.workOrders.where((o) => o.status == 'Em atendimento').length;
+          int waiting = provider.workOrders.where((o) => o.status == 'Aguardando peça').length;
+          int completed = provider.workOrders.where((o) => o.status == 'Concluída').length;
+          
           int urgent = 0;
           int overdue = 0;
           final now = DateTime.now();
           List<WorkOrder> criticalOs = [];
-
           for (var o in provider.workOrders) {
             if (o.status != 'Concluída' && o.status != 'Cancelada') {
               bool isOverdue = false;
               if (o.deadline != null && o.deadline!.isNotEmpty) {
                 try {
-                  final parts = o.deadline!.split(' ');
-                  final dparts = parts[0].split('/');
-                  final tparts = parts[1].split(':');
-                  final dl = DateTime(
-                    int.parse(dparts[2]),
-                    int.parse(dparts[1]),
-                    int.parse(dparts[0]),
-                    int.parse(tparts[0]),
-                    int.parse(tparts[1]),
-                  );
+                  final dl = DateTime.parse(o.deadline!);
                   if (dl.isBefore(now)) {
                     isOverdue = true;
                   }
                 } catch (_) {}
               }
+              
+              bool isUrgent = (o.priority == 'Urgente');
 
-              if (o.priority == 'Alta' || o.priority == 'Urgente') {
-                urgent++;
-                if (!criticalOs.contains(o)) criticalOs.add(o);
-              }
-              if (isOverdue) {
-                overdue++;
-                if (!criticalOs.contains(o)) criticalOs.add(o);
+              if (isOverdue) overdue++;
+              if (isUrgent) urgent++;
+
+              if (isOverdue || isUrgent) {
+                criticalOs.add(o);
               }
             }
           }
 
-          double totalValue = provider.workOrders.fold(
-            0.0,
-            (sum, o) => sum + o.totalCost,
-          );
+          double totalValue = provider.workOrders.fold(0.0, (sum, o) => sum + o.totalCost);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -220,50 +150,18 @@ class DashboardContent extends StatelessWidget {
                   mainAxisSpacing: 12,
                   childAspectRatio: 2.0,
                   children: [
-                    _buildStatCard(
-                      'Total de OS',
-                      totalOS.toString(),
-                      Colors.black87,
-                    ),
-                    _buildStatCard(
-                      'Abertas',
-                      open.toString(),
-                      Colors.blue.shade700,
-                    ),
-                    _buildStatCard(
-                      'Em atendimento',
-                      inProgress.toString(),
-                      Colors.blue.shade700,
-                    ),
-                    _buildStatCard(
-                      'Aguardando peça',
-                      waiting.toString(),
-                      Colors.orange.shade700,
-                    ),
-                    _buildStatCard(
-                      'Concluídas',
-                      completed.toString(),
-                      Colors.green.shade700,
-                    ),
-                    _buildStatCard(
-                      'Urgentes',
-                      urgent.toString(),
-                      Colors.red.shade700,
-                    ),
-                    _buildStatCard(
-                      'Atrasadas',
-                      overdue.toString(),
-                      Colors.red.shade700,
-                    ),
-                    _buildStatCard(
-                      'Valor total',
-                      'R\$ ${NumberFormat.currency(locale: 'pt_BR', symbol: '').format(totalValue)}',
-                      Colors.green.shade700,
-                    ),
+                    _buildStatCard('Total de OS', totalOS.toString(), Colors.black87),
+                    _buildStatCard('Abertas', open.toString(), Colors.blue.shade700),
+                    _buildStatCard('Em atendimento', inProgress.toString(), Colors.blue.shade700),
+                    _buildStatCard('Aguardando peça', waiting.toString(), Colors.orange.shade700),
+                    _buildStatCard('Concluídas', completed.toString(), Colors.green.shade700),
+                    _buildStatCard('Urgentes', urgent.toString(), Colors.red.shade700),
+                    _buildStatCard('Atrasadas', overdue.toString(), Colors.red.shade700),
+                    _buildStatCard('Valor total', 'R\$ ${NumberFormat.currency(locale: 'pt_BR', symbol: '').format(totalValue)}', Colors.green.shade700),
                   ],
                 ),
-
-                if (urgent > 0 || overdue > 0) ...[
+                
+                if (criticalOs.isNotEmpty) ...[
                   const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -277,28 +175,11 @@ class DashboardContent extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.red.shade700,
-                            ),
+                            Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
                             const SizedBox(width: 8),
-                            Text(
-                              'Requer atenção',
-                              style: TextStyle(
-                                color: Colors.red.shade700,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                            Text('Requer atenção', style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold, fontSize: 16)),
                             const Spacer(),
-                            Text(
-                              '${urgent + overdue} OS',
-                              style: TextStyle(
-                                color: Colors.red.shade700,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
+                            Text('${criticalOs.length} OS', style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold, fontSize: 12)),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -314,33 +195,17 @@ class DashboardContent extends StatelessWidget {
                 const SizedBox(height: 24),
                 _buildSectionHeader(context, 'Ordens críticas', ''),
                 const SizedBox(height: 12),
-                ...criticalOs.map(
-                  (os) => _buildOsCard(
-                    context,
-                    os,
-                    provider,
-                    showCriticalTag: true,
-                  ),
-                ),
+                ...criticalOs.map((os) => _buildOsCard(context, os, provider, showCriticalTag: true)),
 
                 const SizedBox(height: 24),
                 _buildSectionHeader(context, 'Ordens recentes', 'Ver todas'),
                 const SizedBox(height: 12),
                 ...provider.workOrders
-                    .where(
-                      (o) => o.status != 'Concluída' && o.status != 'Cancelada',
-                    )
+                    .where((o) => o.status != 'Concluída' && o.status != 'Cancelada')
                     .toList()
                     .reversed
                     .take(3)
-                    .map(
-                      (os) => _buildOsCard(
-                        context,
-                        os,
-                        provider,
-                        showCriticalTag: false,
-                      ),
-                    ),
+                    .map((os) => _buildOsCard(context, os, provider, showCriticalTag: false)),
               ],
             ),
           );
@@ -363,57 +228,30 @@ class DashboardContent extends StatelessWidget {
         children: [
           Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: valueColor,
-            ),
-          ),
+          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: valueColor)),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(
-    BuildContext context,
-    String title,
-    String action,
-  ) {
+  Widget _buildSectionHeader(BuildContext context, String title, String action) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 18, color: Colors.black87),
-        ),
+        Text(title, style: const TextStyle(fontSize: 18, color: Colors.black87)),
         if (action.isNotEmpty)
           GestureDetector(
             onTap: () {
-              final state = context
-                  .findAncestorStateOfType<_DashboardScreenState>();
+              final state = context.findAncestorStateOfType<_DashboardScreenState>();
               state?._onItemTapped(1);
             },
-            child: Text(
-              action,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.red.shade700,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text(action, style: TextStyle(fontSize: 14, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
           ),
       ],
     );
   }
 
-  Widget _buildOsCard(
-    BuildContext context,
-    WorkOrder os,
-    AppProvider provider, {
-    bool showCriticalTag = false,
-  }) {
+  Widget _buildOsCard(BuildContext context, WorkOrder os, AppProvider provider, {bool showCriticalTag = false}) {
     return WorkOrderCard(workOrder: os, showCriticalTag: showCriticalTag);
   }
 }

@@ -336,11 +336,11 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         .toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.black87),
         toolbarHeight: 80,
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Column(

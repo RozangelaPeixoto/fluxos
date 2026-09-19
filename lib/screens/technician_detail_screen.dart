@@ -36,9 +36,9 @@ class TechnicianDetailScreen extends StatelessWidget {
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFFFAFAFA),
+          backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: const Color(0xFFFAFAFA),
+            backgroundColor: Colors.white,
             elevation: 0,
             scrolledUnderElevation: 0,
             iconTheme: const IconThemeData(color: Colors.black87),
@@ -58,24 +58,6 @@ class TechnicianDetailScreen extends StatelessWidget {
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: CircleAvatar(
-                  backgroundColor: Colors.red.shade50,
-                  foregroundColor: Colors.red.shade700,
-                  radius: 20,
-                  child: Text(
-                    tech.name.substring(0, 2).toUpperCase(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
