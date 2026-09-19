@@ -86,6 +86,10 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                 _selectedStatus == null || os.status == _selectedStatus;
             bool matchesPriority =
                 _selectedPriority == null || os.priority == _selectedPriority;
+                
+            if (_selectedPriority != null && (os.status == 'Concluída' || os.status == 'Cancelada')) {
+              matchesPriority = false;
+            }
 
             return matchesSearch && matchesStatus && matchesPriority;
           }).toList();
