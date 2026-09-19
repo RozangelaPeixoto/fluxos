@@ -58,6 +58,7 @@ class TechnicianDetailScreen extends StatelessWidget {
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
+            ),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
