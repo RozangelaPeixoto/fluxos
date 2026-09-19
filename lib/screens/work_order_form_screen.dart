@@ -160,6 +160,10 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   }
   
   bool _validateStatusTransition() {
+    if (_status == 'Atribuída' && _technicianId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Para o status "Atribuída", um técnico responsável é obrigatório.'), backgroundColor: Colors.red));
+      return false;
+    }
     if (_status == 'Em atendimento' && _technicianId == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Para o status "Em atendimento", um técnico responsável é obrigatório.'), backgroundColor: Colors.red));
       return false;
@@ -210,7 +214,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
     return InputDecoration(
       filled: true,
       fillColor: Colors.white,
-      hoverColor: Colors.grey.shade50,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
@@ -334,6 +337,44 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
 
               const SizedBox(height: 16),
               _buildSectionTitle('Atendimento'),
+              const Text('Status', style: TextStyle(color: Colors.black54)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ['Aberta', 'Atribuída', 'Em atendimento', 'Aguardando peça', 'Concluída', 'Cancelada'].map((s) {
+                  final isSelected = _status == s;
+                  
+                  Color? selColor;
+                  Color? selLabelColor;
+                  if (isSelected) {
+                    switch (s) {
+                      case 'Aberta': selColor = Colors.teal.shade50; selLabelColor = Colors.teal.shade600; break;
+                      case 'Atribuída': selColor = Colors.purple.shade50; selLabelColor = Colors.purple.shade600; break;
+                      case 'Em atendimento': selColor = Colors.blue.shade50; selLabelColor = Colors.blue.shade700; break;
+                      case 'Aguardando peça': selColor = Colors.orange.shade50; selLabelColor = Colors.orange.shade700; break;
+                      case 'Concluída': selColor = Colors.green.shade50; selLabelColor = Colors.green.shade700; break;
+                      case 'Cancelada': selColor = Colors.red.shade50; selLabelColor = Colors.red.shade700; break;
+                    }
+                  }
+
+                  return ChoiceChip(
+                    label: Text(s),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) setState(() => _status = s);
+                    },
+                    selectedColor: selColor,
+                    labelStyle: TextStyle(
+                      color: isSelected ? selLabelColor : Colors.black87,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey.shade300)),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
               const Text('Técnico responsável', style: TextStyle(color: Colors.black54)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
@@ -355,30 +396,6 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text('Status', style: TextStyle(color: Colors.black54)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: ['Aberta', 'Atribuída', 'Em atendimento', 'Aguardando peça', 'Concluída', 'Cancelada'].map((s) {
-                  final isSelected = _status == s;
-                  return ChoiceChip(
-                    label: Text(s),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) setState(() => _status = s);
-                    },
-                    selectedColor: s == 'Cancelada' ? Colors.red.shade50 : (isSelected ? Colors.blue.shade50 : null),
-                    labelStyle: TextStyle(
-                      color: isSelected ? (s == 'Cancelada' ? Colors.red.shade700 : Colors.blue.shade700) : Colors.black87,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey.shade300)),
-                  );
-                }).toList(),
               ),
 
               const SizedBox(height: 16),
