@@ -42,6 +42,7 @@ dependencies:
   uuid: ^4.6.0
   sqflite_common_ffi: ^2.4.3
   mask_text_input_formatter: ^2.9.0
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
