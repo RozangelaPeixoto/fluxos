@@ -82,7 +82,7 @@ class DashboardContent extends StatelessWidget {
             
             return Row(
               children: [
-                Icon(Icons.ac_unit, color: Colors.blue.shade700, size: 40),
+                Image.asset('assets/logo.png', width: 40, height: 40),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

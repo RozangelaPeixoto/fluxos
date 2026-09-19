@@ -336,11 +336,11 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         .toList();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.black87),
         toolbarHeight: 80,
-        backgroundColor: Colors.white,
+        
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Column(
@@ -463,7 +463,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                           ? FontWeight.bold
                           : FontWeight.normal,
                     ),
-                    backgroundColor: Colors.white,
+                    
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side: BorderSide(
@@ -538,7 +538,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                               ? FontWeight.bold
                               : FontWeight.normal,
                         ),
-                        backgroundColor: Colors.white,
+                        
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                           side: BorderSide(
