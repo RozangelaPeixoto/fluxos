@@ -33,7 +33,7 @@ class DbService {
     return await databaseFactory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 5,
+        version: 6,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
       ),
@@ -54,6 +54,9 @@ class DbService {
     if (oldVersion < 5) {
       await db.execute('ALTER TABLE work_orders ADD COLUMN discount REAL DEFAULT 0.0');
       await db.execute('ALTER TABLE work_orders ADD COLUMN photos TEXT DEFAULT ""');
+    }
+    if (oldVersion < 6) {
+      await db.execute('ALTER TABLE work_orders ADD COLUMN statusHistory TEXT DEFAULT "{}"');
     }
   }
 
@@ -116,6 +119,7 @@ class DbService {
         discount REAL,
         totalCost REAL,
         photos TEXT,
+        statusHistory TEXT,
         FOREIGN KEY (clientId) REFERENCES clients (id) ON DELETE CASCADE,
         FOREIGN KEY (equipmentId) REFERENCES equipments (id) ON DELETE CASCADE,
         FOREIGN KEY (technicianId) REFERENCES technicians (id) ON DELETE SET NULL

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -186,6 +187,17 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
       _formKey.currentState!.save();
       final provider = Provider.of<AppProvider>(context, listen: false);
 
+      Map<String, dynamic> historyMap = {};
+      if (widget.os != null && widget.os!.statusHistory.isNotEmpty) {
+        try {
+          historyMap = jsonDecode(widget.os!.statusHistory);
+        } catch (_) {}
+      }
+      
+      if (widget.os == null || widget.os!.status != _status) {
+        historyMap[_status] = DateTime.now().toIso8601String();
+      }
+
       final newOs = WorkOrder(
         id: widget.os?.id ?? const Uuid().v4(),
         code: widget.os?.code ?? 'OS-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
@@ -204,6 +216,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         discount: _parseCurrency(_discountCtrl.text),
         totalCost: _totalCost,
         photos: _photos.join(','),
+        statusHistory: jsonEncode(historyMap),
       );
       provider.saveWorkOrder(newOs);
       Navigator.pop(context);

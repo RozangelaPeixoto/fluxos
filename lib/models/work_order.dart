@@ -16,6 +16,7 @@ class WorkOrder {
   double discount;
   double totalCost;
   String photos; // Armazenará caminhos de imagem separados por vírgula
+  String statusHistory; // Histórico de mudanças de status em JSON
 
   WorkOrder({
     required this.id,
@@ -35,6 +36,7 @@ class WorkOrder {
     this.discount = 0.0,
     this.totalCost = 0.0,
     this.photos = '',
+    this.statusHistory = '{}',
   });
 
   Map<String, dynamic> toMap() {
@@ -56,6 +58,7 @@ class WorkOrder {
       'discount': discount,
       'totalCost': totalCost,
       'photos': photos,
+      'statusHistory': statusHistory,
     };
   }
 
@@ -78,6 +81,7 @@ class WorkOrder {
       discount: (map['discount'] ?? 0.0).toDouble(),
       totalCost: (map['totalCost'] ?? 0.0).toDouble(),
       photos: map['photos'] ?? '',
+      statusHistory: map['statusHistory'] ?? '{}',
     );
   }
 }
