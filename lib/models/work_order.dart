@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class WorkOrder {
   String id;
   String code;
@@ -15,7 +13,9 @@ class WorkOrder {
   String? solution;
   double laborCost;
   double partsCost;
+  double discount;
   double totalCost;
+  String photos; // Armazenará caminhos de imagem separados por vírgula
 
   WorkOrder({
     required this.id,
@@ -32,7 +32,9 @@ class WorkOrder {
     this.solution,
     this.laborCost = 0.0,
     this.partsCost = 0.0,
+    this.discount = 0.0,
     this.totalCost = 0.0,
+    this.photos = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -51,7 +53,9 @@ class WorkOrder {
       'solution': solution,
       'laborCost': laborCost,
       'partsCost': partsCost,
+      'discount': discount,
       'totalCost': totalCost,
+      'photos': photos,
     };
   }
 
@@ -69,9 +73,11 @@ class WorkOrder {
       status: map['status'],
       diagnosis: map['diagnosis'],
       solution: map['solution'],
-      laborCost: map['laborCost'],
-      partsCost: map['partsCost'],
-      totalCost: map['totalCost'],
+      laborCost: (map['laborCost'] ?? 0.0).toDouble(),
+      partsCost: (map['partsCost'] ?? 0.0).toDouble(),
+      discount: (map['discount'] ?? 0.0).toDouble(),
+      totalCost: (map['totalCost'] ?? 0.0).toDouble(),
+      photos: map['photos'] ?? '',
     );
   }
 }
