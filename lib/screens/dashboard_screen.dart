@@ -100,9 +100,8 @@ class DashboardContent extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.black54),
             onPressed: () {
-              // Optionally provider.logout() if it exists, otherwise just clear and navigate
               final provider = Provider.of<AppProvider>(context, listen: false);
-              provider.loggedUser = null;
+              provider.logout();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const AuthScreen()),
