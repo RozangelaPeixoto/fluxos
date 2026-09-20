@@ -45,18 +45,18 @@ class AppProvider with ChangeNotifier {
       id: _uuid.v4(),
       name: 'Clínica Vida',
       document: '11.111.111/0001-11',
-      phone: '11999999999',
+      phone: '(85) 96245-9991',
       email: 'contato@vida.com',
-      address: 'Rua A, 123',
+      address: 'Rua A, 123 - Fortaleza, CE',
       createdAt: DateTime.now().toIso8601String(),
     );
     var c2 = Client(
       id: _uuid.v4(),
       name: 'Mercado Central',
       document: '22.222.222/0001-22',
-      phone: '11888888888',
+      phone: '(85) 98858-8968',
       email: 'contato@mercado.com',
-      address: 'Rua B, 456',
+      address: 'Rua B, 456 - Fortaleza, CE',
       createdAt: DateTime.now().toIso8601String(),
     );
     await _db.insertClient(c1);
@@ -64,8 +64,8 @@ class AppProvider with ChangeNotifier {
 
     var t1 = Technician(
       id: _uuid.v4(),
-      name: 'Mariana',
-      contact: '11777777777',
+      name: 'Mariana Silva',
+      contact: '(85) 98547-7767',
       specialty: 'Refrigeração',
       matricula: '12345',
       senha: '123',
@@ -73,8 +73,8 @@ class AppProvider with ChangeNotifier {
     );
     var t2 = Technician(
       id: _uuid.v4(),
-      name: 'Carlos',
-      contact: '11666666666',
+      name: 'Carlos Magalhães',
+      contact: '(85) 96857-6876',
       specialty: 'Eletrônica',
       matricula: '54321',
       senha: '123',
@@ -90,7 +90,7 @@ class AppProvider with ChangeNotifier {
       brand: 'Stermax',
       model: 'A100',
       serialNumber: 'SN123',
-      patrimony: 'PAT001',
+      patrimony: 'PAT0001',
       observations: '',
     );
     var e2 = Equipment(
@@ -100,7 +100,7 @@ class AppProvider with ChangeNotifier {
       brand: 'FrioBom',
       model: 'C200',
       serialNumber: 'SN456',
-      patrimony: 'PAT002',
+      patrimony: 'PAT0002',
       observations: '',
     );
     await _db.insertEquipment(e1);
@@ -111,7 +111,7 @@ class AppProvider with ChangeNotifier {
 
     var os1 = WorkOrder(
       id: _uuid.v4(),
-      code: 'OS-0248',
+      code: 'OS-02481',
       clientId: c1.id,
       equipmentId: e1.id,
       description: 'Não liga',
@@ -124,7 +124,7 @@ class AppProvider with ChangeNotifier {
 
     var os2 = WorkOrder(
       id: _uuid.v4(),
-      code: 'OS-0241',
+      code: 'OS-02413',
       clientId: c2.id,
       equipmentId: e2.id,
       description: 'Temperatura não baixa',

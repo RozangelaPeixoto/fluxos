@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../providers/app_provider.dart';
+import 'auth_screen.dart';
 import 'clients_screen.dart';
 import 'equipments_screen.dart';
 import 'technicians_screen.dart';
@@ -95,6 +96,22 @@ class DashboardContent extends StatelessWidget {
             );
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.black54),
+            onPressed: () {
+              // Optionally provider.logout() if it exists, otherwise just clear and navigate
+              final provider = Provider.of<AppProvider>(context, listen: false);
+              provider.loggedUser = null;
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
+                (route) => false,
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, child) {
