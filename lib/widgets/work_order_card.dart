@@ -43,7 +43,7 @@ class WorkOrderCard extends StatelessWidget {
       try {
         final dl = DateTime.parse(workOrder.deadline!);
         deadlineStr = DateFormat("dd/MM/yy 'às' HH:mm").format(dl);
-        if (dl.isBefore(DateTime.now())) {
+        if (dl.isBefore(DateTime.now()) && workOrder.status != 'Concluída' && workOrder.status != 'Cancelada') {
           isOverdue = true;
         }
       } catch (_) {

@@ -153,6 +153,13 @@ class DashboardContent extends StatelessWidget {
 
           double totalValue = provider.workOrders.fold(0.0, (sum, o) => sum + o.totalCost);
 
+          final recentOs = provider.workOrders
+              .where((o) => o.status != 'Concluída' && o.status != 'Cancelada')
+              .toList()
+              .reversed
+              .take(3)
+              .toList();
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -206,22 +213,19 @@ class DashboardContent extends StatelessWidget {
                       ],
                     ),
                   ),
+                  
+                  const SizedBox(height: 24),
+                  _buildSectionHeader(context, 'Ordens críticas', ''),
+                  const SizedBox(height: 12),
+                  ...criticalOs.map((os) => _buildOsCard(context, os, provider, showCriticalTag: true)),
                 ],
 
-                const SizedBox(height: 24),
-                _buildSectionHeader(context, 'Ordens críticas', ''),
-                const SizedBox(height: 12),
-                ...criticalOs.map((os) => _buildOsCard(context, os, provider, showCriticalTag: true)),
-
-                const SizedBox(height: 24),
-                _buildSectionHeader(context, 'Ordens recentes', 'Ver todas'),
-                const SizedBox(height: 12),
-                ...provider.workOrders
-                    .where((o) => o.status != 'Concluída' && o.status != 'Cancelada')
-                    .toList()
-                    .reversed
-                    .take(3)
-                    .map((os) => _buildOsCard(context, os, provider, showCriticalTag: false)),
+                if (recentOs.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _buildSectionHeader(context, 'Ordens recentes', 'Ver todas'),
+                  const SizedBox(height: 12),
+                  ...recentOs.map((os) => _buildOsCard(context, os, provider, showCriticalTag: false)),
+                ],
               ],
             ),
           );
