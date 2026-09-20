@@ -6,7 +6,6 @@ import '../providers/app_provider.dart';
 import '../models/technician.dart';
 import 'technicians_screen.dart';
 import '../widgets/status_pill.dart';
-import '../widgets/work_order_card.dart';
 import 'work_order_detail_screen.dart';
 import 'work_orders_screen.dart';
 

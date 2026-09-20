@@ -2,15 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/app_provider.dart';
-import '../models/work_order.dart';
 import '../widgets/work_order_card.dart';
 import 'work_order_form_screen.dart';
-import 'work_order_detail_screen.dart';
-import '../models/equipment.dart';
-import '../widgets/status_pill.dart';
-import '../widgets/work_order_card.dart';
-
-import 'package:intl/intl.dart';
 
 class WorkOrdersScreen extends StatefulWidget {
   const WorkOrdersScreen({super.key});

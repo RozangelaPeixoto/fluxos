@@ -8,9 +8,7 @@ import 'clients_screen.dart';
 import 'equipments_screen.dart';
 import 'technicians_screen.dart';
 import 'work_orders_screen.dart';
-import 'work_order_detail_screen.dart';
 import '../models/work_order.dart';
-import '../widgets/status_pill.dart';
 import '../widgets/work_order_card.dart';
 
 class DashboardScreen extends StatefulWidget {

@@ -54,17 +54,10 @@ class _AuthScreenState extends State<AuthScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade700,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  Icons.auto_awesome,
-                  size: 48,
-                  color: Colors.white,
-                ),
+              Image.asset(
+                'assets/logo.png',
+                height: 80,
+                fit: BoxFit.contain,
               ),
               const SizedBox(height: 16),
               const Text(

@@ -6,7 +6,6 @@ import '../models/client.dart';
 import 'clients_screen.dart';
 import 'equipments_screen.dart';
 import 'equipment_detail_screen.dart';
-import '../widgets/work_order_card.dart';
 import '../widgets/status_pill.dart';
 import 'work_order_detail_screen.dart';
 
