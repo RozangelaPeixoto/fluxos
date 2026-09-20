@@ -8,6 +8,7 @@ import 'technicians_screen.dart';
 import '../widgets/status_pill.dart';
 import '../widgets/work_order_card.dart';
 import 'work_order_detail_screen.dart';
+import 'work_orders_screen.dart';
 
 class TechnicianDetailScreen extends StatelessWidget {
   final Technician technician;
@@ -25,6 +26,28 @@ class TechnicianDetailScreen extends StatelessWidget {
         final techOs = provider.workOrders
             .where((o) => o.technicianId == tech.id)
             .toList();
+
+        int concluidas = techOs.where((o) => o.status == 'Concluída').length;
+        double faturamento = techOs
+            .where((o) => o.status == 'Concluída')
+            .fold(0.0, (sum, o) => sum + o.totalCost);
+
+        int totalValidas = techOs.where((o) => o.status != 'Cancelada').length;
+        int desempenho = totalValidas == 0 ? 0 : ((concluidas / totalValidas) * 100).round();
+
+        final displayOs = techOs.where((o) => 
+            o.deadline != null && 
+            o.deadline!.isNotEmpty && 
+            o.status != 'Concluída' && 
+            o.status != 'Cancelada'
+        ).toList();
+        displayOs.sort((a, b) {
+          try {
+            return DateTime.parse(a.deadline!).compareTo(DateTime.parse(b.deadline!));
+          } catch (_) {
+            return 0;
+          }
+        });
 
         // format date
         String registeredDate = '';
@@ -107,7 +130,7 @@ class TechnicianDetailScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'MAT. ${tech.matricula}',
+                                  'Matrícula: ${tech.matricula}',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey,
@@ -165,17 +188,17 @@ class TechnicianDetailScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildStatSquare('32', 'CONCLUÍDAS')),
+                    Expanded(child: _buildStatSquare('$concluidas', 'CONCLUÍDAS')),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildStatSquare('R\$ 8.587', 'FATURAMENTO'),
+                      child: _buildStatSquare('R\$ ${NumberFormat.currency(locale: 'pt_BR', symbol: '').format(faturamento)}', 'FATURAMENTO'),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildStatSquare('3h20', 'MÉDIA / OS')),
+                    Expanded(child: _buildStatSquare('$desempenho%', 'DESEMPENHO')),
                   ],
                 ),
 
-                if (techOs.isNotEmpty) ...[
+                if (displayOs.isNotEmpty) ...[
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -188,18 +211,23 @@ class TechnicianDetailScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        'Ver tudo',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.blue.shade700,
-                          fontWeight: FontWeight.bold,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkOrdersScreen()));
+                        },
+                        child: Text(
+                          'Ver tudo',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  ...techOs.take(3).map((os) {
+                  ...displayOs.take(3).map((os) {
                     final eq = provider.equipments
                         .where((e) => e.id == os.equipmentId)
                         .firstOrNull;
@@ -208,7 +236,7 @@ class TechnicianDetailScreen extends StatelessWidget {
                     String osDate = '';
                     String osTime = '';
                     try {
-                      final dt = DateTime.parse(os.openDate);
+                      final dt = DateTime.parse(os.deadline!);
                       osDate = DateFormat('dd/MM/yy').format(dt);
                       osTime = DateFormat('HH:mm').format(dt);
                     } catch (_) {}
